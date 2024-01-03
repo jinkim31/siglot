@@ -4,6 +4,9 @@
 #include <vector>
 #include <shared_mutex>
 #include <map>
+#include <memory>
+#include <mutex>
+#include <algorithm>
 
 // forward declaration
 class EThread;
@@ -37,6 +40,7 @@ public:
     void addObjectThreadMap(EObject* object, EThread* thread);
     void removeObjectThreadMap(EObject* object);
     void addConnection(std::unique_ptr<GeneralizedConnection>&& connection);
+    void removeObjectConnection(EObject* object);
     std::shared_mutex& getMutex();
 };
 
