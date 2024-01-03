@@ -34,7 +34,7 @@ struct Connection : public GeneralizedConnection
         //std::cout<<"connecting signal "<<mSignalHash<<" to slot "<<mSlotHash<<std::endl;
         mSignalObject = signalObject;
         mSlotObject = slotObject;
-        mSlotCaller = std::bind(slot, slotObject, std::placeholders::_1);
+        mSlotCaller = [=](ArgTypes... args){ (slotObject->*slot)(args...); }; // copy capture since slotObject will go out of scope
     }
     std::function<void(ArgTypes...)> mSlotCaller;
 };

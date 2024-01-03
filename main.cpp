@@ -5,19 +5,19 @@
 class Producer : public EObject
 {
 public:
-    void signal(std::string){}
+    void signal(std::string, int num){}
     void emitSignal()
     {
-        emit(&Producer::signal, std::string("hello"));
+        emit(&Producer::signal, std::string("hello"), 123);
     }
 };
 
 class Consumer : public EObject
 {
 public:
-    void slot(std::string str)
+    void slot(std::string str, int num)
     {
-        std::cout<<"consumer slot "<<str<<std::endl;
+        std::cout<<"consumer slot "<<num<<str<<std::endl;
     }
 };
 
