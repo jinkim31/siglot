@@ -2,6 +2,13 @@
 #include <algorithm>
 #include <iostream>
 
+GeneralizedConnection::GeneralizedConnection(std::type_index signalId, std::type_index slotId)
+        : mSignalId(signalId), mSlotId(slotId)
+{
+    mSignalObject = nullptr;
+    mSignalObject = nullptr;
+}
+
 ELookup::~ELookup()
 {
     if(!mConnectionGraph.empty())

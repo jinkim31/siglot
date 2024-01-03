@@ -7,15 +7,17 @@
 #include <memory>
 #include <mutex>
 #include <algorithm>
+#include <typeindex>
 
 // forward declaration
 class EThread;
 class EObject;
 
 struct GeneralizedConnection{
+    GeneralizedConnection(std::type_index signalId, std::type_index slotId);
     virtual ~GeneralizedConnection() = default;
     EObject* mSignalObject, *mSlotObject;
-    size_t mSignalHash, mSlotHash;
+    std::type_index mSignalId, mSlotId;
 };
 
 struct ELookup

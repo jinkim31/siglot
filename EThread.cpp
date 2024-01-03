@@ -42,7 +42,7 @@ void EThread::step()
     std::unique_lock<std::shared_mutex> lock(mMutex);
     size_t nQueued = mEventQueue.size();
     lock.unlock();
-    //std::cout<<nQueued<<" events in queue."<<std::endl;
+
     for(int i=0; i<nQueued; i++)
     {
         lock.lock();
