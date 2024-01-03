@@ -31,7 +31,7 @@ struct Connection : public GeneralizedConnection
         mSlotObject = slotObject;
         mSignalHash = typeid(signal).hash_code();
         mSlotHash = typeid(slot).hash_code();
-        std::cout<<"connecting signal "<<mSignalHash<<" to slot "<<mSlotHash<<std::endl;
+        //std::cout<<"connecting signal "<<mSignalHash<<" to slot "<<mSlotHash<<std::endl;
         mSignalObject = signalObject;
         mSlotObject = slotObject;
         mSlotCaller = std::bind(slot, slotObject, std::placeholders::_1);
@@ -66,15 +66,27 @@ public:
         // TODO: optimize search
         for(auto& connection  : ELookup::instance().mConnectionGraph)
         {
-            if(connection->mSignalObject == this && connection->mSignalHash == typeid(signal).hash_code())
+            // find connection
+            if(!(connection->mSignalObject == this && connection->mSignalHash == typeid(signal).hash_code()))
+                continue;
+
+            // cast connection to typed connection
+            auto *argTypeConnection = dynamic_cast<Connection<ArgTypes...> *>(connection.get());
+            if (argTypeConnection == nullptr)
             {
-                // std::cout<<"found slot"<<std::endl;
-                auto* argTypeConnection = dynamic_cast<Connection<ArgTypes...>*>(connection.get());
-                if(argTypeConnection == nullptr)
-                {
-                    std::cerr<<"cast failed"<<std::endl;
-                    return;
-                }
+                std::cerr << "cast failed" << std::endl;
+                return;
+            }
+
+            if( ELookup::instance().mObjectThreadMap[this] == ELookup::instance().mObjectThreadMap[connection->mSlotObject])
+            {
+                // signal and slot objects are in the same thread
+                argTypeConnection->mSlotCaller(args...);
+            }
+            else
+            {
+                // signal and slot objects are in different threads
+
                 ELookup::instance().mObjectThreadMap[connection->mSlotObject]->pushEvent(
                         std::bind(argTypeConnection->mSlotCaller, args...));
             }

@@ -31,6 +31,7 @@ public:
     void operator=(ELookup const&) = delete;
 private:
     ELookup() {}
+    ~ELookup();
 
 // struct
 public:

@@ -33,7 +33,6 @@ int main()
     consumer.move(consumerThread);
 
     EObject::connect(&producer, &Producer::signal, &consumer, &Consumer::slot);
-    EObject::connect(&producer, &Producer::signal, &consumer, &Consumer::slot);
 
     consumerThread.start();
 
