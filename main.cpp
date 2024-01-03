@@ -5,7 +5,7 @@
 class Producer : public EObject
 {
 public:
-    void signal(std::string, int num){}
+    void signal(std::string, int){}
     void emitSignal()
     {
         emit(&Producer::signal, std::string("hello"), 123);

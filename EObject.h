@@ -74,15 +74,30 @@ public:
                 return;
             }
 
+            // find signal slot thread
+            auto signalThread = ELookup::instance().mObjectThreadMap.find(connection->mSignalObject) ;
+            auto slotThread = ELookup::instance().mObjectThreadMap.find(connection->mSlotObject) ;
+
+            // check thread validity
+            if(signalThread == ELookup::instance().mObjectThreadMap.end())
+            {
+                std::cerr<<"Signal EObject is not in any thread. use EObject::move(EThread*) to assign it to a thread."<<std::endl;
+                return;
+            }
+            if(slotThread == ELookup::instance().mObjectThreadMap.end())
+            {
+                std::cerr<<"Slot EObject is not in any thread. use EObject::move(EThread*) to assign it to a thread."<<std::endl;
+                return;
+            }
+
+            // execute if signal and slot objects are in the same thread
             if( ELookup::instance().mObjectThreadMap[this] == ELookup::instance().mObjectThreadMap[connection->mSlotObject])
             {
-                // signal and slot objects are in the same thread
                 argTypeConnection->mSlotCaller(args...);
             }
+            // queue if signal and slot objects are in different threads
             else
             {
-                // signal and slot objects are in different threads
-
                 ELookup::instance().mObjectThreadMap[connection->mSlotObject]->pushEvent(
                         std::bind(argTypeConnection->mSlotCaller, args...));
             }

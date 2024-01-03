@@ -38,7 +38,7 @@ private:
 // struct
 public:
     std::shared_mutex mMutex;
-    std::map<EObject*, EThread*> mObjectThreadMap; // map of active objects and their threads in affinity
+    std::unordered_map<EObject*, EThread*> mObjectThreadMap; // map of active objects and their threads in affinity
     std::vector<std::unique_ptr<GeneralizedConnection>> mConnectionGraph; // edge list of active connection graph
     void addObjectThreadMap(EObject* object, EThread* thread);
     void removeObjectThreadMap(EObject* object);
