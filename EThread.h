@@ -12,6 +12,7 @@ class EThread
 {
 public:
     EThread();
+    ~EThread();
     void start();
     void stop();
     void step();

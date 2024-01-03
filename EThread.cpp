@@ -6,6 +6,11 @@ EThread::EThread()
     mEventLoopBreakFlag = false;
 }
 
+EThread::~EThread()
+{
+    stop();
+}
+
 void EThread::start()
 {
     mThread = std::thread(EThread::entryPoint, this);
@@ -58,4 +63,3 @@ void EThread::pushEvent(std::function<void(void)> &&event)
     std::unique_lock<std::shared_mutex> lock(mMutex);
     mEventQueue.push(std::move(event));
 }
-
