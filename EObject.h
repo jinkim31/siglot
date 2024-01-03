@@ -10,12 +10,12 @@
 #include <iostream>
 #include <functional>
 #include <memory>
+#include "EThread.h"
+#include "ELookup.h"
 
 class EObject;
+class EThread;
 
-struct GeneralizedConnection{
-    virtual ~GeneralizedConnection() = default;
-};
 template <typename... ArgTypes>
 struct Connection : public GeneralizedConnection
 {
@@ -26,15 +26,16 @@ struct Connection : public GeneralizedConnection
             SlotObjectType* slotObject,
             void (SlotObjectType::*slot)(ArgTypes...))
     {
-        mSignalHash = reinterpret_cast<intptr_t>(&signal);
-        mSlotHash = reinterpret_cast<intptr_t>(&slot);
+        //mSignalHash = reinterpret_cast<intptr_t>(&signal);
+        mSignalObject = signalObject;
+        mSlotObject = slotObject;
+        mSignalHash = typeid(signal).hash_code();
+        mSlotHash = typeid(slot).hash_code();
         std::cout<<"connecting signal "<<mSignalHash<<" to slot "<<mSlotHash<<std::endl;
         mSignalObject = signalObject;
         mSlotObject = slotObject;
         mSlotCaller = std::bind(slot, slotObject, std::placeholders::_1);
     }
-    EObject* mSignalObject, *mSlotObject;
-    intptr_t mSignalHash, mSlotHash;
     std::function<void(ArgTypes...)> mSlotCaller;
 };
 
@@ -42,34 +43,42 @@ struct Connection : public GeneralizedConnection
 class EObject
 {
 public:
-    static std::vector<std::unique_ptr<GeneralizedConnection>> mConnectionGraph;
-
-public:
     template <typename SignalObjectType, typename SlotObjectType, typename... ArgTypes>
     static void connect(
-            SignalObjectType* signalObject,
-            void (SignalObjectType::*signal)(ArgTypes...),
-            SlotObjectType* slotObject,
-            void (SlotObjectType::*slot)(ArgTypes...))
+            SignalObjectType* signalObject, void (SignalObjectType::*signal)(ArgTypes...),
+            SlotObjectType* slotObject, void (SlotObjectType::*slot)(ArgTypes...))
     {
-        mConnectionGraph.emplace_back(
+        ELookup::instance().addConnection(
                 std::unique_ptr<Connection<ArgTypes...>>(new Connection(signalObject, signal, slotObject, slot)));
     }
 
-    template <typename... ArgTypes>
-    static void emit(ArgTypes... args)
-    {
-        // find connection
-        auto connection= EObject::mConnectionGraph[0].get();
+    void move(EThread& ethread);
 
-        // cast connection
-        auto* argTypeConnection = dynamic_cast<Connection<std::string>*>(connection); // might be ok to use static_cast
-        if(argTypeConnection == nullptr)
+    void remove();
+
+    template <typename SignalObjectType, typename... ArgTypes>
+    void emit(void (SignalObjectType::*signal)(ArgTypes...), ArgTypes... args)
+    {
+        // shared-lock lookup
+        std::shared_lock<std::shared_mutex> lock(ELookup::instance().getMutex());
+
+        // find connection
+        // TODO: optimize search
+        for(auto& connection  : ELookup::instance().mConnectionGraph)
         {
-            std::cerr<<"cast failed"<<std::endl;
-            return;
+            if(connection->mSignalObject == this && connection->mSignalHash == typeid(signal).hash_code())
+            {
+                // std::cout<<"found slot"<<std::endl;
+                auto* argTypeConnection = dynamic_cast<Connection<ArgTypes...>*>(connection.get());
+                if(argTypeConnection == nullptr)
+                {
+                    std::cerr<<"cast failed"<<std::endl;
+                    return;
+                }
+                ELookup::instance().mObjectThreadMap[connection->mSlotObject]->pushEvent(
+                        std::bind(argTypeConnection->mSlotCaller, args...));
+            }
         }
-        argTypeConnection->mSlotCaller(args...);
     }
 };
 

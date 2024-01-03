@@ -1,32 +1,44 @@
 #include <iostream>
 #include "EObject.h"
+#include "EThread.h"
 
-class SignalEObject : public EObject
+class Producer : public EObject
 {
 public:
-    void mySignal(std::string message){}
+    void signal(std::string){}
     void emitSignal()
     {
-        EObject::emit<std::string>("hello world");
+        emit(&Producer::signal, std::string("hello"));
     }
 };
 
-class SlotEObject : public EObject
+class Consumer : public EObject
 {
 public:
-    void mySlot(std::string message)
+    void slot(std::string str)
     {
-        std::cout<<message<<std::endl;
+        std::cout<<"consumer slot "<<str<<std::endl;
     }
 };
 
 int main()
 {
-    SignalEObject signalEObject;
-    SlotEObject slotEObject;
+    EThread producerThread;
+    EThread consumerThread;
+    Producer producer;
+    Consumer consumer;
 
-    // connect
-    EObject::connect(&signalEObject, &SignalEObject::mySignal, &slotEObject, &SlotEObject::mySlot);
-    // emit signal
-    signalEObject.emitSignal();
+    producer.move(producerThread);
+    consumer.move(consumerThread);
+
+    EObject::connect(&producer, &Producer::signal, &consumer, &Consumer::slot);
+    EObject::connect(&producer, &Producer::signal, &consumer, &Consumer::slot);
+
+    consumerThread.start();
+
+    //producerThread.step();
+    producer.emitSignal();
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
+    consumerThread.stop();
 }

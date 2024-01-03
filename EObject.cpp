@@ -1,2 +1,11 @@
 #include "EObject.h"
-std::vector<std::unique_ptr<GeneralizedConnection>> EObject::mConnectionGraph;
+
+void EObject::move(EThread& ethread)
+{
+    ELookup::instance().addObjectThreadMap(this, &ethread);
+}
+
+void EObject::remove()
+{
+
+}
