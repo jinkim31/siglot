@@ -7,5 +7,6 @@ void EObject::move(EThread& ethread)
 
 void EObject::remove()
 {
-
+    ELookup::instance().removeObjectThreadMap(this);
+    ELookup::instance().removeObjectConnection(this);
 }

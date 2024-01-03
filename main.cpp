@@ -25,6 +25,7 @@ int main()
 {
     EThread producerThread;
     EThread consumerThread;
+
     Producer producer;
     Consumer consumer;
 
@@ -36,9 +37,10 @@ int main()
 
     consumerThread.start();
 
-    //producerThread.step();
     producer.emitSignal();
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
     consumerThread.stop();
+    producer.remove();
+    consumer.remove();
 }

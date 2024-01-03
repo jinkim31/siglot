@@ -18,7 +18,7 @@ void ELookup::removeObjectThreadMap(EObject *object)
 {
     std::unique_lock<std::shared_mutex> lock(mMutex);
     auto iter = mObjectThreadMap.find(object) ;
-    if( iter != mObjectThreadMap.end() )
+    if( iter == mObjectThreadMap.end() )
         std::cerr<<"removeObjectThreadMap() object not found"<<std::endl;
     mObjectThreadMap.erase( iter );
 }
