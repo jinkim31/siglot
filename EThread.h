@@ -16,14 +16,15 @@ public:
     void start();
     void stop();
     void step();
-    void pushEvent(std::function<void(void)>&& event);
-    static void* entryPoint(void* param);
 private:
     std::thread mThread;
     std::shared_mutex mMutex;
     std::atomic<bool> mEventLoopBreakFlag;
     std::queue<std::function<void(void)>> mEventQueue;
+    static void* entryPoint(void* param);
+    void pushEvent(std::function<void(void)>&& event);
     void runEventLoop();
+friend class EObject;
 };
 
 
