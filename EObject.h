@@ -1,9 +1,8 @@
-//
-// Created by Jin Kim on 2024/01/02.
-//
-
 #ifndef ETHREAD2_EOBJECT_H
 #define ETHREAD2_EOBJECT_H
+
+#define SIGNAL
+#define SLOT
 
 #include <vector>
 #include <map>
@@ -12,28 +11,10 @@
 #include <memory>
 #include "EThread.h"
 #include "ELookup.h"
+#include "EConnection.h"
 
 class EObject;
 class EThread;
-
-template <typename... ArgTypes>
-struct Connection : public GeneralizedConnection
-{
-    template <typename SignalObjectType, typename SlotObjectType>
-    Connection(
-            SignalObjectType* signalObject,
-            void (SignalObjectType::*signal)(ArgTypes...),
-            SlotObjectType* slotObject,
-            void (SlotObjectType::*slot)(ArgTypes...))
-    : GeneralizedConnection(std::type_index(typeid(signal)), std::type_index(typeid(slot)))
-    {
-        mSignalObject = signalObject;
-        mSlotObject = slotObject;
-        mSlotCaller = [=](ArgTypes... args){ (slotObject->*slot)(args...); }; // copy capture since slotObject will go out of scope
-    }
-    std::function<void(ArgTypes...)> mSlotCaller;
-};
-
 
 class EObject
 {
@@ -41,10 +22,14 @@ public:
     template <typename SignalObjectType, typename SlotObjectType, typename... ArgTypes>
     static void connect(
             SignalObjectType* signalObject, void (SignalObjectType::*signal)(ArgTypes...),
-            SlotObjectType* slotObject, void (SlotObjectType::*slot)(ArgTypes...))
+            SlotObjectType* slotObject, void (SlotObjectType::*slot)(ArgTypes...),
+            EConnection::ConnectionType connectionType = EConnection::AUTO)
     {
+        std::cout<<"connecting "<<signalObject<<"::"<<std::type_index(typeid(signal)).hash_code()<<" to "<<slotObject<<"::"<<std::type_index(typeid(slot)).name()<<std::endl;
+        std::unique_lock<std::shared_mutex> lock(ELookup::instance().getMutex());
         ELookup::instance().addConnection(
-                std::unique_ptr<Connection<ArgTypes...>>(new Connection(signalObject, signal, slotObject, slot)));
+                std::unique_ptr<EConnection::Connection<ArgTypes...>>(
+                        new EConnection::Connection(signalObject, signal, slotObject, slot, connectionType)));
     }
 
     void move(EThread& ethread);
@@ -59,15 +44,17 @@ public:
 
         // find connection
         // TODO: optimize search
+        std::cout<<"target"<<this<<"::"<<std::type_index(typeid(signal)).name()<<std::endl;
         for(auto& connection  : ELookup::instance().mConnectionGraph)
         {
             // find connection
+            std::cout<<"iter"<<connection->mSignalObject<<"::"<<connection->mSignalId.name()<<std::endl;
             if(!(connection->mSignalObject == this && connection->mSignalId == std::type_index(typeid(signal))))
                 continue;
 
             // cast connection to typed connection
-            // TODO: use static_cast instead after sufficient testing
-            auto *argTypeConnection = dynamic_cast<Connection<ArgTypes...> *>(connection.get());
+            // TODO: use static_cast instead after sufficient testing. Might be better to continue using dynamic_cast to support inherited signal, slot
+            auto *argTypeConnection = dynamic_cast<EConnection::Connection<ArgTypes...> *>(connection.get());
             if (argTypeConnection == nullptr)
             {
                 std::cerr << "cast failed" << std::endl;
@@ -75,8 +62,8 @@ public:
             }
 
             // find signal slot thread
-            auto signalThread = ELookup::instance().mObjectThreadMap.find(connection->mSignalObject) ;
-            auto slotThread = ELookup::instance().mObjectThreadMap.find(connection->mSlotObject) ;
+            auto signalThread = ELookup::instance().mObjectThreadMap.find(connection->mSignalObject);
+            auto slotThread = ELookup::instance().mObjectThreadMap.find(connection->mSlotObject);
 
             // check thread validity
             if(signalThread == ELookup::instance().mObjectThreadMap.end())
@@ -90,19 +77,39 @@ public:
                 return;
             }
 
-            // execute if signal and slot objects are in the same thread
-            if( ELookup::instance().mObjectThreadMap[this] == ELookup::instance().mObjectThreadMap[connection->mSlotObject])
+            // check if signal and slot objects are in the same thread
+            bool sameThread = ELookup::instance().mObjectThreadMap[this] == ELookup::instance().mObjectThreadMap[connection->mSlotObject];
+
+            switch(argTypeConnection->mConnectionType)
             {
-                argTypeConnection->mSlotCaller(args...);
+            case EConnection::AUTO:
+            {
+                if(sameThread)
+                    argTypeConnection->mSlotCaller(args...);
+                else
+                    ELookup::instance().mObjectThreadMap[connection->mSlotObject]
+                    ->pushEvent(this,std::bind(argTypeConnection->mSlotCaller,args...));
+                break;
             }
-            // queue if signal and slot objects are in different threads
-            else
+            case EConnection::DIRECT:
             {
-                ELookup::instance().mObjectThreadMap[connection->mSlotObject]->pushEvent(
-                        std::bind(argTypeConnection->mSlotCaller, args...));
+                if (!sameThread)
+                    throw std::runtime_error("Direct connection between EObject from different threads.");
+                argTypeConnection->mSlotCaller(args...);
+                break;
+            }
+            case EConnection::QUEUED:
+            {
+                ELookup::instance().mObjectThreadMap[connection->mSlotObject]
+                ->pushEvent(this, std::bind(argTypeConnection->mSlotCaller, args...));
+                break;
+            }
             }
         }
     }
+protected:
+    virtual void onMove(EThread& thread){}
+    virtual void onRemove(){}
 };
 
 
