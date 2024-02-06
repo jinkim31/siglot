@@ -64,7 +64,7 @@ void EThread::step()
         }
         if( slotThread.value()!=this)
         {
-            std::cerr<<"EXPECTED! Slot thread mismatch."<<std::endl;
+            std::cout<<"EXPECTED! Queued event's thread mismatch. This could happen on object move or remove(slot object: "<<front.first<<", this thread: "<<this<<", slot thread: "<<slotThread.value()<<")."<<std::endl;
             continue;
         }
         front.second();

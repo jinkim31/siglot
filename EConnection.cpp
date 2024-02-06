@@ -1,8 +1,8 @@
 #include "EConnection.h"
 
 EConnection::GeneralizedConnection::GeneralizedConnection(
-        EObject *signalObject, std::type_index signalId,
-        EObject *slotObject, std::type_index slotId,
+        EObject *signalObject, const std::string& signalId,
+        EObject *slotObject, const std::string& slotId,
         ConnectionType connectionType)
         :
         mSignalObject(signalObject), mSignalId(signalId),

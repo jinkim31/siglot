@@ -18,12 +18,12 @@ public:
     struct GeneralizedConnection
     {
         GeneralizedConnection(
-                EObject *signalObject, std::type_index signalId,
-                EObject *slotObject, std::type_index slotId,
+                EObject *signalObject, const std::string& signalId,
+                EObject *slotObject, const std::string& slotId,
                 ConnectionType connectionType);
         virtual ~GeneralizedConnection() = default;
         EObject *mSignalObject, *mSlotObject;
-        const std::type_index mSignalId, mSlotId;
+        const std::string mSignalId, mSlotId;
         const ConnectionType mConnectionType;
     };
 
@@ -33,11 +33,13 @@ public:
         template<typename SignalObjectType, typename SlotObjectType>
         Connection(
                 SignalObjectType *signalObject,
+                const std::string& signalId,
                 void (SignalObjectType::*signal)(ArgTypes...),
                 SlotObjectType *slotObject,
+                const std::string& slotId,
                 void (SlotObjectType::*slot)(ArgTypes...),
                 ConnectionType connectionType)
-                : GeneralizedConnection(signalObject, std::type_index(typeid(signal)), slotObject, std::type_index(typeid(slot)), connectionType)
+                : GeneralizedConnection(signalObject, signalId, slotObject, slotId, connectionType)
         {
             mSignalObject = signalObject;
             mSlotObject = slotObject;

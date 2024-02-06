@@ -8,12 +8,13 @@ class Producer : public EObject
 public:
     Producer()
     {
-        connect(&mObserver, &EObserver::observed, this, &Producer::observeCallback);
+        connect(&mObserver, SIGLOT(EObserver::observed), this, SIGLOT(Producer::observeCallback));
     }
-    void SIGNAL ready(int number, std::string data){}
+    void SIGNAL ready(){}
     void SLOT observeCallback()
     {
-        std::cout<<"produce"<<std::endl;
+        std::cout<<"produce signal emit"<<std::endl;
+        emit(SIGLOT(Producer::ready));
     }
 
     void a(){}
@@ -37,26 +38,14 @@ private:
 class Consumer : public EObject
 {
 public:
-    void SLOT process(int number, std::string data)
+    void SLOT process()
     {
-
+        std::cout<<"Consumer slot call"<<std::endl;
     }
 };
 
 int main()
 {
-    void (Producer::*aPtr)() = &Producer::a;
-    void (Producer::*bPtr)() = &Producer::b;
-
-    std::uintptr_t aUint = reinterpret_cast<std::uintptr_t>(static_cast<const char*>(static_cast<const void*>(&aPtr)));
-    std::uintptr_t bUint = reinterpret_cast<std::uintptr_t>(static_cast<const char*>(static_cast<const void*>(&bPtr)));
-
-    std::cout<<aUint<<" "<<bUint<<std::endl;
-    if(aPtr == aPtr)
-        std::cout<<"t"<<std::endl;
-    else
-        std::cout<<"f"<<std::endl;
-    /*
     EThread producerThread;
     EThread consumerThread;
 
@@ -66,17 +55,16 @@ int main()
     producer.move(producerThread);
     consumer.move(consumerThread);
 
-    EObject::connect(&producer, &Producer::ready, &consumer, &Consumer::process);
+    EObject::connect(&producer, SIGLOT(Producer::ready), &consumer, SIGLOT(Consumer::process));
 
     producerThread.start();
     consumerThread.start();
 
-    //std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
     producerThread.stop();
     consumerThread.stop();
 
     producer.remove();
     consumer.remove();
-     */
 }

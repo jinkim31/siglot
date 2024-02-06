@@ -8,19 +8,19 @@
 class EObserver : public EObject
 {
 public:
-    EObserver(bool emitObservedSignal = false)
+    EObserver(bool emitObservedSignal = true)
     {
         mIsActive = false;
         mEmitObservedSignal = emitObservedSignal;
         //TODO: this line outputs error: EXC_BAD_ACCESS connect(this, &EObserver::selfCallSignal, this, &EObserver::selfCallSlot, EConnection::DIRECT);
-        connect(this, &EObserver::selfCallSignal, this, &EObserver::selfCallSlot, EConnection::QUEUED);
+        connect(this, SIGLOT(EObserver::selfCallSignal), this, SIGLOT(EObserver::selfCallSlot), EConnection::QUEUED);
     }
     void start()
     {
         if(mIsActive)
             return;
         mIsActive = true;
-        emit(&EObserver::selfCallSignal);
+        emit(SIGLOT(EObserver::selfCallSignal));
     }
     void stop()
     {
@@ -33,17 +33,17 @@ public:
 protected:
     virtual void observerCallback()
     {
-        std::cout<<"EObserver callback"<<std::endl;
+        //std::cout<<"EObserver callback"<<std::endl;
     }
 private:
     void SIGNAL selfCallSignal(){std::cout<<"b";}
     void SLOT selfCallSlot()
     {
         observerCallback();
-        //if(mEmitObservedSignal)
-        //    emit(&EObserver::observed);
+        if(mEmitObservedSignal)
+            emit(SIGLOT(EObserver::observed));
         if(mIsActive)
-            emit(&EObserver::selfCallSignal);
+            emit(SIGLOT(EObserver::selfCallSignal));
     }
     bool mIsActive;
     bool mEmitObservedSignal;
