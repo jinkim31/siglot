@@ -25,6 +25,7 @@ public:
         EObject *mSignalObject, *mSlotObject;
         const std::string mSignalId, mSlotId;
         const ConnectionType mConnectionType;
+        size_t mCallCount;
     };
 
     template<typename... ArgTypes>

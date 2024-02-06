@@ -63,6 +63,9 @@ public:
                 return;
             }
 
+            // increment connection call counter
+            connection->mCallCount++;
+
             // find signal slot thread
             auto signalThread = ELookup::instance().mObjectThreadMap.find(connection->mSignalObject);
             auto slotThread = ELookup::instance().mObjectThreadMap.find(connection->mSlotObject);

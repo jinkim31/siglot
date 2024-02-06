@@ -9,4 +9,5 @@ EConnection::GeneralizedConnection::GeneralizedConnection(
         mSlotObject(slotObject), mSlotId(slotId),
         mConnectionType(connectionType)
 {
+    mCallCount = 0;
 }
