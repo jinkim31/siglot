@@ -13,12 +13,9 @@ public:
     void SIGNAL ready(){}
     void SLOT observeCallback()
     {
-        std::cout<<"produce signal emit"<<std::endl;
+        std::cout<<"producer signal"<<std::endl;
         emit(SIGLOT(Producer::ready));
     }
-
-    void a(){}
-    void b(){}
 protected:
     void onMove(EThread &thread) override
     {
@@ -40,7 +37,7 @@ class Consumer : public EObject
 public:
     void SLOT process()
     {
-        std::cout<<"Consumer slot call"<<std::endl;
+        std::cout<<"Consumer slot"<<std::endl;
     }
 };
 
@@ -60,7 +57,7 @@ int main()
     producerThread.start();
     consumerThread.start();
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
     producerThread.stop();
     consumerThread.stop();
