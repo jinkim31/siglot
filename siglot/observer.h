@@ -8,12 +8,12 @@
 class Observer : public Object
 {
 public:
-    Observer(bool emitObservedSignal = true)
+    Observer()
     {
         mIsActive = false;
-        mEmitObservedSignal = emitObservedSignal;
         setName("observer");
-        //TODO: this line outputs error: EXC_BAD_ACCESS connect(this, &EObserver::selfCallSignal, this, &EObserver::selfCallSlot, EConnection::DIRECT);
+        // queued connection is used even though the signal and the slot are in the same thread
+        // direct connection would result in infinite selfCallSlot() recursion and stack overflow
         connect(this, SIGLOT(Observer::selfCallSignal), this, SIGLOT(Observer::selfCallSlot), Connection::QUEUED, true);
     }
     void start()
@@ -21,6 +21,7 @@ public:
         if(mIsActive)
             return;
         mIsActive = true;
+        onStart();
         emit(SIGLOT(Observer::selfCallSignal));
     }
     void stop()
@@ -28,26 +29,26 @@ public:
         if(!mIsActive)
             return;
         mIsActive = false;
+        onStop();
     }
 
-    void SIGNAL observed(){std::cout<<"a";}
+    void SIGNAL observed(){}
 protected:
     virtual void observerCallback()
     {
-        //std::cout<<"EObserver callback"<<std::endl;
+        emit(SIGLOT(Observer::observed));
     }
+    virtual void onStart(){}
+    virtual void onStop(){}
 private:
-    void SIGNAL selfCallSignal(){std::cout<<"b";}
+    void SIGNAL selfCallSignal(){}
     void SLOT selfCallSlot()
     {
         observerCallback();
-        if(mEmitObservedSignal)
-            emit(SIGLOT(Observer::observed));
         if(mIsActive)
             emit(SIGLOT(Observer::selfCallSignal));
     }
     bool mIsActive;
-    bool mEmitObservedSignal;
 };
 
 #endif

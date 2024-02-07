@@ -1,13 +1,14 @@
 #include <iostream>
 #include <siglot/object.h>
-#include <siglot/observer.h>
+#include <siglot/timer.h>
 
 class Producer : public Object
 {
 public:
     Producer()
     {
-        connect(&mObserver, SIGLOT(Observer::observed), this, SIGLOT(Producer::produce));
+        mTimer.setTimeout(std::chrono::milliseconds(500));
+        connect(&mTimer, SIGLOT(Timer::timeout), this, SIGLOT(Producer::produce));
     }
     void SIGNAL ready(){}
     void SLOT produce()
@@ -18,17 +19,17 @@ public:
 protected:
     void onMove(Thread &thread) override
     {
-        mObserver.move(thread);
-        mObserver.start();
+        mTimer.move(thread);
+        mTimer.start();
     }
 
     void onRemove() override
     {
-        mObserver.remove();
-        mObserver.stop();
+        mTimer.remove();
+        mTimer.stop();
     }
 private:
-    Observer mObserver;
+    Timer mTimer;
 };
 
 class Consumer : public Object
@@ -67,14 +68,12 @@ int main()
     producerThread2.start();
     consumerThread.start();
 
-    std::this_thread::sleep_for(std::chrono::seconds (1));
+    std::this_thread::sleep_for(std::chrono::seconds (5));
     Lookup::instance().dumpConnectionGraph("", true);
 
     producerThread1.stop();
     producerThread2.stop();
     consumerThread.stop();
-
-
 
     producer1.remove();
     producer2.remove();

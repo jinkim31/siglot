@@ -8,7 +8,8 @@ add_library(siglot SHARED
         siglot/thread.cpp
         siglot/connection.cpp
         siglot/lookup.cpp
-        siglot/observer.cpp)
+        siglot/observer.cpp
+        siglot/timer.cpp)
 target_link_libraries(siglot PRIVATE gvc cgraph)
 target_include_directories(siglot PUBLIC .)
 
