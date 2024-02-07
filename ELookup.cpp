@@ -130,7 +130,7 @@ void ELookup::dumpConnectionGraph(const std::string &fileName, bool showHiddenCo
 
         // signal-slot edge
         auto signalSlotEdge = agedge(g, signalNode, slotNode, 0, 1);
-        ss << std::dec << connection->mCallCount <<" calls\n"<< connection->mCallFrequency <<"Hz";
+        ss << std::dec << connection->mCallCount <<" calls\n"<< connection->mCallFrequency <<" Hz";
         agsafeset(signalSlotEdge, "label", ss.str().c_str(), "");
         ss.str(""); ss.clear();
     }
