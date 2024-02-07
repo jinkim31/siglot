@@ -3,7 +3,7 @@
 
 An asynchronous multithreading framework implementing Qt-like signal-slot pattern.
 
-![test.png](image%2Ftest.png)
+![consumer_producer.png](image%2Fconsumer_producer.png)
 
 ## TODO
 - thread status(n events in queue, queue push/pop ratio)
