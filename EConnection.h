@@ -27,7 +27,11 @@ public:
         const std::string mSignalId, mSlotId;
         const ConnectionType mConnectionType;
         const bool mIsHiddenInGraphViz;
-        size_t mCallCount;
+
+        // these are atomic since they are accessed in a shared-locked section in EObject::emit()
+        std::atomic<size_t> mCallCount;
+        std::atomic<float> mCallFrequency;
+        std::atomic<long long> mLastCallTime;
     };
 
     template<typename... ArgTypes>

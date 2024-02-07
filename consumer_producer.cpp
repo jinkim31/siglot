@@ -65,12 +65,14 @@ int main()
     consumerThread.start();
 
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    ELookup::instance().dumpConnectionGraph("", true);
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
     producerThread1.stop();
     producerThread2.stop();
     consumerThread.stop();
 
-    ELookup::instance().dumpConnectionGraph("", true);
+
 
     producer1.remove();
     producer2.remove();

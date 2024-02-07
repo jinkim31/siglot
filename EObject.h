@@ -70,6 +70,12 @@ public:
             // increment connection call counter
             connection->mCallCount++;
 
+            // update connection call frequency
+            auto duration = std::chrono::high_resolution_clock::now().time_since_epoch();
+            long long timeNow = std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
+            connection->mCallFrequency = 1000000.0f / (timeNow - connection->mLastCallTime);
+            connection->mLastCallTime = timeNow;
+
             // find signal slot thread
             auto signalThread = connection->mSignalObject->mThreadInAffinity;
             auto slotThread = connection->mSlotObject->mThreadInAffinity;

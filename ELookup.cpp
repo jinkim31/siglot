@@ -94,10 +94,11 @@ void ELookup::dumpConnectionGraph(const std::string &fileName, bool showHiddenCo
     std::unordered_map<EObject*, Agnode_t*> nodeMap;
     for(const auto& objectClassNamePair : objectNameMap)
     {
-        ss << objectClassNamePair.second << "(" << std::hex << objectClassNamePair.first << ")";
+        ss << objectClassNamePair.second << "\n(" << std::hex << objectClassNamePair.first << ")";
         auto node = agnode(threadMap[objectClassNamePair.first->mThreadInAffinity], &ss.str()[0], 1);
         ss.str(""); ss.clear();
         agsafeset(node, "shape", "box", "");
+        agsafeset(node, "style", "filled", "");
         nodeMap[objectClassNamePair.first] = node;
     }
 
@@ -113,18 +114,25 @@ void ELookup::dumpConnectionGraph(const std::string &fileName, bool showHiddenCo
         agsafeset(signalNode, "color", "blue", "");
         agsafeset(signalNode, "label", connection->mSignalId.c_str(), "");
         ss.str(""), ss.clear();
+
         // object-signal edge
         agedge(g, nodeMap[connection->mSignalObject], signalNode, "", 1);
+
         // slot node
         ss << connection->mSlotId << "(" << std::hex << connection->mSlotObject << ")";
         auto slotNode = agnode(threadMap[connection->mSlotObject->mThreadInAffinity], (char*)ss.str().c_str(), 1);
         agsafeset(slotNode, "color", "orange", "");
         agsafeset(slotNode, "label", connection->mSlotId.c_str(), "");
         ss.str(""), ss.clear();
+
         // slot-object edge
         agedge(g, slotNode, nodeMap[connection->mSlotObject], "", 1);
+
         // signal-slot edge
-        agedge(g, signalNode, slotNode, 0, 1);
+        auto signalSlotEdge = agedge(g, signalNode, slotNode, 0, 1);
+        ss << std::dec << connection->mCallCount <<" calls\n"<< connection->mCallFrequency <<"Hz";
+        agsafeset(signalSlotEdge, "label", ss.str().c_str(), "");
+        ss.str(""); ss.clear();
     }
 
     // Use the directed graph layout engine
