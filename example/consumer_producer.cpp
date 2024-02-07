@@ -1,14 +1,13 @@
 #include <iostream>
-#include "../src/EObject.h"
-#include "../src/EThread.h"
-#include "../src/EObserver.h"
+#include <siglot/Object.h>
+#include <siglot/Observer.h>
 
-class Producer : public EObject
+class Producer : public Object
 {
 public:
     Producer()
     {
-        connect(&mObserver, SIGLOT(EObserver::observed), this, SIGLOT(Producer::observeCallback));
+        connect(&mObserver, SIGLOT(Observer::observed), this, SIGLOT(Producer::observeCallback));
     }
     void SIGNAL ready(){}
     void SLOT observeCallback()
@@ -17,7 +16,7 @@ public:
         emit(SIGLOT(Producer::ready));
     }
 protected:
-    void onMove(EThread &thread) override
+    void onMove(Thread &thread) override
     {
         mObserver.move(thread);
         mObserver.start();
@@ -29,10 +28,10 @@ protected:
         mObserver.stop();
     }
 private:
-    EObserver mObserver;
+    Observer mObserver;
 };
 
-class Consumer : public EObject
+class Consumer : public Object
 {
 public:
     void SLOT process()
@@ -43,8 +42,8 @@ public:
 
 int main()
 {
-    EThread producerThread1, producerThread2;
-    EThread consumerThread;
+    Thread producerThread1, producerThread2;
+    Thread consumerThread;
 
     Producer producer1, producer2;
     Consumer consumer;
@@ -57,15 +56,15 @@ int main()
     producer2.move(producerThread2);
     consumer.move(consumerThread);
 
-    EObject::connect(&producer1, SIGLOT(Producer::ready), &consumer, SIGLOT(Consumer::process));
-    EObject::connect(&producer2, SIGLOT(Producer::ready), &consumer, SIGLOT(Consumer::process));
+    Object::connect(&producer1, SIGLOT(Producer::ready), &consumer, SIGLOT(Consumer::process));
+    Object::connect(&producer2, SIGLOT(Producer::ready), &consumer, SIGLOT(Consumer::process));
 
     producerThread1.start();
     producerThread2.start();
     consumerThread.start();
 
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    ELookup::instance().dumpConnectionGraph("", true);
+    Lookup::instance().dumpConnectionGraph("", true);
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
     producerThread1.stop();

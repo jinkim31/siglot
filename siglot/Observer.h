@@ -1,27 +1,27 @@
 #ifndef ETHREAD2_EOBSERVER_H
 #define ETHREAD2_EOBSERVER_H
 
-#include "EObject.h"
-#include "ELookup.h"
+#include "Object.h"
+#include "Lookup.h"
 #include <chrono>
 
-class EObserver : public EObject
+class Observer : public Object
 {
 public:
-    EObserver(bool emitObservedSignal = true)
+    Observer(bool emitObservedSignal = true)
     {
         mIsActive = false;
         mEmitObservedSignal = emitObservedSignal;
         setName("observer");
         //TODO: this line outputs error: EXC_BAD_ACCESS connect(this, &EObserver::selfCallSignal, this, &EObserver::selfCallSlot, EConnection::DIRECT);
-        connect(this, SIGLOT(EObserver::selfCallSignal), this, SIGLOT(EObserver::selfCallSlot), EConnection::QUEUED, true);
+        connect(this, SIGLOT(Observer::selfCallSignal), this, SIGLOT(Observer::selfCallSlot), Connection::QUEUED, true);
     }
     void start()
     {
         if(mIsActive)
             return;
         mIsActive = true;
-        emit(SIGLOT(EObserver::selfCallSignal));
+        emit(SIGLOT(Observer::selfCallSignal));
     }
     void stop()
     {
@@ -42,9 +42,9 @@ private:
     {
         observerCallback();
         if(mEmitObservedSignal)
-            emit(SIGLOT(EObserver::observed));
+            emit(SIGLOT(Observer::observed));
         if(mIsActive)
-            emit(SIGLOT(EObserver::selfCallSignal));
+            emit(SIGLOT(Observer::selfCallSignal));
     }
     bool mIsActive;
     bool mEmitObservedSignal;

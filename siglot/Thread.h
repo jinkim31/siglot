@@ -8,13 +8,13 @@
 #include <functional>
 #include <queue>
 
-class EObject;
+class Object;
 
-class EThread
+class Thread
 {
 public:
-    EThread();
-    ~EThread();
+    Thread();
+    ~Thread();
     void start();
     void stop();
     void step();
@@ -22,11 +22,11 @@ private:
     std::thread mThread;
     std::shared_mutex mMutex;
     std::atomic<bool> mEventLoopBreakFlag;
-    std::queue<std::pair<EObject*, std::function<void(void)>>> mEventQueue;
+    std::queue<std::pair<Object*, std::function<void(void)>>> mEventQueue;
     static void* entryPoint(void* param);
-    void pushEvent(EObject *slotObject, std::function<void(void)> &&event);
+    void pushEvent(Object *slotObject, std::function<void(void)> &&event);
     void runEventLoop();
-friend class EObject;
+friend class Object;
 };
 
 

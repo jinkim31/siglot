@@ -11,34 +11,34 @@
 #include <iostream>
 #include <functional>
 #include <memory>
-#include "EThread.h"
-#include "ELookup.h"
-#include "EConnection.h"
+#include "Thread.h"
+#include "Lookup.h"
+#include "Connection.h"
 
-class EObject;
-class EThread;
+class Object;
+class Thread;
 
-class EObject
+class Object
 {
 public:
-    EObject();
+    Object();
 
     template <typename SignalObjectType, typename SlotObjectType, typename... ArgTypes>
     static void connect(
             SignalObjectType* signalObject, const std::string& signalId, void (SignalObjectType::*signal)(ArgTypes...),
             SlotObjectType* slotObject, const std::string& slotId, void (SlotObjectType::*slot)(ArgTypes...),
-            EConnection::ConnectionType connectionType = EConnection::AUTO,
+            Connection::ConnectionType connectionType = Connection::AUTO,
             bool isHiddenInGraphViz = false)
     {
         //std::cout<<"connecting "<<signalObject<<"-"<<signalId<<" to "<<slotObject<<"-"<<slotId<<std::endl;
-        std::unique_lock<std::shared_mutex> lock(ELookup::instance().getGlobalMutex());
-        ELookup::instance().unprotectedAddConnection(
-                std::unique_ptr<EConnection::Connection<ArgTypes...>>(
-                        new EConnection::Connection(signalObject, signalId, signal, slotObject, slotId, slot,
-                                                    connectionType, isHiddenInGraphViz)));
+        std::unique_lock<std::shared_mutex> lock(Lookup::instance().getGlobalMutex());
+        Lookup::instance().unprotectedAddConnection(
+                std::unique_ptr<Connection::Connection<ArgTypes...>>(
+                        new Connection::Connection(signalObject, signalId, signal, slotObject, slotId, slot,
+                                                   connectionType, isHiddenInGraphViz)));
     }
 
-    void move(EThread& ethread);
+    void move(Thread& ethread);
 
     void remove();
 
@@ -46,12 +46,12 @@ public:
     void emit(const std::string& signalId, void (SignalObjectType::*signal)(ArgTypes...), ArgTypes... args)
     {
         // shared-lock lookup
-        std::shared_lock<std::shared_mutex> lock(ELookup::instance().getGlobalMutex());
+        std::shared_lock<std::shared_mutex> lock(Lookup::instance().getGlobalMutex());
 
         // find connection
         // TODO: optimize search
         //std::cout<<"target"<<this<<"::"<<std::type_index(typeid(signal)).name()<<std::endl;
-        for(auto& connection  : ELookup::instance().mConnectionGraph)
+        for(auto& connection  : Lookup::instance().mConnectionGraph)
         {
             // find connection
             //std::cout<<"iter"<<connection->mSignalObject<<"-"<<connection->mSignalId<<std::endl;
@@ -60,7 +60,7 @@ public:
 
             // cast connection to typed connection
             // TODO: use static_cast instead after sufficient testing. Might be better to continue using dynamic_cast to support inherited signal, slot
-            auto *argTypeConnection = dynamic_cast<EConnection::Connection<ArgTypes...> *>(connection.get());
+            auto *argTypeConnection = dynamic_cast<Connection::Connection<ArgTypes...> *>(connection.get());
             if (argTypeConnection == nullptr)
             {
                 std::cerr << "cast failed" << std::endl;
@@ -98,7 +98,7 @@ public:
             // connect with given connection type
             switch(argTypeConnection->mConnectionType)
             {
-            case EConnection::AUTO:
+            case Connection::AUTO:
             {
                 if(sameThread)
                     argTypeConnection->mSlotCaller(args...);
@@ -106,14 +106,14 @@ public:
                     slotThread->pushEvent(connection->mSlotObject,std::bind(argTypeConnection->mSlotCaller,args...));
                 break;
             }
-            case EConnection::DIRECT:
+            case Connection::DIRECT:
             {
                 if (!sameThread)
                     throw std::runtime_error("Direct connection between EObject from different threads.");
                 argTypeConnection->mSlotCaller(args...);
                 break;
             }
-            case EConnection::QUEUED:
+            case Connection::QUEUED:
             {
                 slotThread->pushEvent(connection->mSlotObject, std::bind(argTypeConnection->mSlotCaller, args...));
                 break;
@@ -125,13 +125,13 @@ public:
     void setName(const std::string& name);
     std::string name();
 protected:
-    virtual void onMove(EThread& thread){}
+    virtual void onMove(Thread& thread){}
     virtual void onRemove(){}
 private:
-    EThread* mThreadInAffinity;
+    Thread* mThreadInAffinity;
     std::string mName;
-friend EThread;
-friend ELookup;
+friend Thread;
+friend Lookup;
 };
 
 

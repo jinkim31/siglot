@@ -1,38 +1,38 @@
-#include "EThread.h"
-#include "ELookup.h"
-#include "EObject.h"
+#include "Thread.h"
+#include "Lookup.h"
+#include "Object.h"
 
-EThread::EThread()
+Thread::Thread()
 {
     mEventLoopBreakFlag = false;
 }
 
-EThread::~EThread()
+Thread::~Thread()
 {
     stop();
 }
 
-void EThread::start()
+void Thread::start()
 {
-    mThread = std::thread(EThread::entryPoint, this);
+    mThread = std::thread(Thread::entryPoint, this);
     mEventLoopBreakFlag = false;
 }
 
-void EThread::stop()
+void Thread::stop()
 {
     mEventLoopBreakFlag = true;
     if(mThread.joinable())
         mThread.join();
 }
 
-void *EThread::entryPoint(void *param)
+void *Thread::entryPoint(void *param)
 {
-    auto* ethreadPtr = (EThread*)param;
+    auto* ethreadPtr = (Thread*)param;
     ethreadPtr->runEventLoop();
     return nullptr;
 }
 
-void EThread::runEventLoop()
+void Thread::runEventLoop()
 {
     while(true)
     {
@@ -43,9 +43,9 @@ void EThread::runEventLoop()
     }
 }
 
-void EThread::step()
+void Thread::step()
 {
-    std::shared_lock<std::shared_mutex> lookupLock(ELookup::instance().getGlobalMutex());
+    std::shared_lock<std::shared_mutex> lookupLock(Lookup::instance().getGlobalMutex());
     std::unique_lock<std::shared_mutex> lock(mMutex);
     size_t nQueued = mEventQueue.size();
     lock.unlock();
@@ -72,7 +72,7 @@ void EThread::step()
     }
 }
 
-void EThread::pushEvent(EObject *slotObject, std::function<void(void)> &&event)
+void Thread::pushEvent(Object *slotObject, std::function<void(void)> &&event)
 {
     std::unique_lock<std::shared_mutex> lock(mMutex);
     mEventQueue.push(std::move(std::make_pair(slotObject, std::move(event))));

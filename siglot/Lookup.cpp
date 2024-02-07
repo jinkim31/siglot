@@ -1,11 +1,11 @@
-#include "ELookup.h"
+#include "Lookup.h"
 #include <algorithm>
 #include <iostream>
 #include <string>
 #include <sstream>
-#include "EObject.h"
+#include "Object.h"
 
-ELookup::~ELookup()
+Lookup::~Lookup()
 {
     if(!mConnectionGraph.empty())
     {
@@ -20,18 +20,18 @@ ELookup::~ELookup()
     }
 }
 
-std::shared_mutex &ELookup::getGlobalMutex()
+std::shared_mutex &Lookup::getGlobalMutex()
 {
     return mGlobalMutex;
 }
 
-void ELookup::unprotectedAddObjectList(EObject *object)
+void Lookup::unprotectedAddObjectList(Object *object)
 {
     if(std::find(mObjectList.begin(), mObjectList.end(),object) == mObjectList.end())
         mObjectList.push_back(object);
 }
 
-void ELookup::unprotectedRemoveObjectThreadMap(EObject *object)
+void Lookup::unprotectedRemoveObjectThreadMap(Object *object)
 {
     mObjectList.erase(
             std::remove_if(mObjectList.begin(), mObjectList.end(),
@@ -39,12 +39,12 @@ void ELookup::unprotectedRemoveObjectThreadMap(EObject *object)
             mObjectList.end());
 }
 
-void ELookup::unprotectedAddConnection(std::unique_ptr<EConnection::GeneralizedConnection> &&connection)
+void Lookup::unprotectedAddConnection(std::unique_ptr<Connection::GeneralizedConnection> &&connection)
 {
     mConnectionGraph.push_back(std::move(connection));
 }
 
-void ELookup::unprotectedRemoveObjectConnection(EObject *object)
+void Lookup::unprotectedRemoveObjectConnection(Object *object)
 {
     mConnectionGraph.erase(
             std::remove_if(mConnectionGraph.begin(), mConnectionGraph.end(),
@@ -52,16 +52,16 @@ void ELookup::unprotectedRemoveObjectConnection(EObject *object)
             mConnectionGraph.end());
 }
 
-void ELookup::dumpConnectionGraph(const std::string &fileName, bool showHiddenConnections)
+void Lookup::dumpConnectionGraph(const std::string &fileName, bool showHiddenConnections)
 {
     // create gvc context and graph
     GVC_t *gvc = gvContext();
     Agraph_t *g = agopen("Connection Graph", Agdirected, 0);
 
     // make object node and thread names
-    std::shared_lock<std::shared_mutex> lookupLock(ELookup::instance().getGlobalMutex());
-    std::unordered_map<EObject*, std::string> objectNameMap;
-    std::unordered_map<EThread*, std::string> threadNameMap;
+    std::shared_lock<std::shared_mutex> lookupLock(Lookup::instance().getGlobalMutex());
+    std::unordered_map<Object*, std::string> objectNameMap;
+    std::unordered_map<Thread*, std::string> threadNameMap;
     std::stringstream ss;
     for(const auto& connection : mConnectionGraph)
     {
@@ -82,7 +82,7 @@ void ELookup::dumpConnectionGraph(const std::string &fileName, bool showHiddenCo
     }
 
     // make subgraphs
-    std::unordered_map<EThread*, Agraph_t*> threadMap;
+    std::unordered_map<Thread*, Agraph_t*> threadMap;
     for(const auto& threadNamePair : threadNameMap)
     {
         auto subgraph = agsubg(g,(char*)("cluster" + threadNamePair.second).c_str(), 1);
@@ -91,7 +91,7 @@ void ELookup::dumpConnectionGraph(const std::string &fileName, bool showHiddenCo
     }
 
     // make object nodes
-    std::unordered_map<EObject*, Agnode_t*> nodeMap;
+    std::unordered_map<Object*, Agnode_t*> nodeMap;
     for(const auto& objectClassNamePair : objectNameMap)
     {
         ss << objectClassNamePair.second << "\n(" << std::hex << objectClassNamePair.first << ")";

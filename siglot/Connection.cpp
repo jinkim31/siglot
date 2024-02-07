@@ -1,8 +1,8 @@
-#include "EConnection.h"
+#include "Connection.h"
 
-EConnection::GeneralizedConnection::GeneralizedConnection(
-        EObject *signalObject, const std::string& signalId,
-        EObject *slotObject, const std::string& slotId,
+Connection::GeneralizedConnection::GeneralizedConnection(
+        Object *signalObject, const std::string& signalId,
+        Object *slotObject, const std::string& slotId,
         ConnectionType connectionType, bool isHiddenInGraphViz)
         :
         mSignalObject(signalObject), mSignalId(signalId),
