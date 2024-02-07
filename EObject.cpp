@@ -1,5 +1,10 @@
 #include "EObject.h"
 
+EObject::EObject()
+{
+    mName = "Object";
+}
+
 void EObject::move(EThread& ethread)
 {
     std::unique_lock<std::shared_mutex> lock(ELookup::instance().getGlobalMutex());
@@ -16,4 +21,16 @@ void EObject::remove()
     ELookup::instance().unprotectedRemoveObjectConnection(this);
     lock.unlock();
     onRemove();
+}
+
+void EObject::setName(const std::string &name)
+{
+    std::unique_lock<std::shared_mutex> lock(ELookup::instance().getGlobalMutex());
+    mName = name;
+}
+
+std::string EObject::name()
+{
+    std::shared_lock<std::shared_mutex> lock(ELookup::instance().getGlobalMutex());
+    return mName;
 }

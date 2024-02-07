@@ -12,8 +12,9 @@ public:
     {
         mIsActive = false;
         mEmitObservedSignal = emitObservedSignal;
+        setName("observer");
         //TODO: this line outputs error: EXC_BAD_ACCESS connect(this, &EObserver::selfCallSignal, this, &EObserver::selfCallSlot, EConnection::DIRECT);
-        connect(this, SIGLOT(EObserver::selfCallSignal), this, SIGLOT(EObserver::selfCallSlot), EConnection::QUEUED);
+        connect(this, SIGLOT(EObserver::selfCallSignal), this, SIGLOT(EObserver::selfCallSlot), EConnection::QUEUED, true);
     }
     void start()
     {

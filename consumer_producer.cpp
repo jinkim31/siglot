@@ -43,25 +43,36 @@ public:
 
 int main()
 {
-    EThread producerThread;
+    EThread producerThread1, producerThread2;
     EThread consumerThread;
 
-    Producer producer;
+    Producer producer1, producer2;
     Consumer consumer;
 
-    producer.move(producerThread);
+    producer1.setName("producer 1");
+    producer2.setName("producer 2");
+    consumer.setName("Consumer");
+
+    producer1.move(producerThread1);
+    producer2.move(producerThread2);
     consumer.move(consumerThread);
 
-    EObject::connect(&producer, SIGLOT(Producer::ready), &consumer, SIGLOT(Consumer::process));
+    EObject::connect(&producer1, SIGLOT(Producer::ready), &consumer, SIGLOT(Consumer::process));
+    EObject::connect(&producer2, SIGLOT(Producer::ready), &consumer, SIGLOT(Consumer::process));
 
-    producerThread.start();
+    producerThread1.start();
+    producerThread2.start();
     consumerThread.start();
 
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
-    producerThread.stop();
+    producerThread1.stop();
+    producerThread2.stop();
     consumerThread.stop();
 
-    producer.remove();
+    ELookup::instance().dumpConnectionGraph("");
+
+    producer1.remove();
+    producer2.remove();
     consumer.remove();
 }

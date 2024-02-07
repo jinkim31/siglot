@@ -21,18 +21,21 @@ class EThread;
 class EObject
 {
 public:
+    EObject();
+
     template <typename SignalObjectType, typename SlotObjectType, typename... ArgTypes>
     static void connect(
             SignalObjectType* signalObject, const std::string& signalId, void (SignalObjectType::*signal)(ArgTypes...),
             SlotObjectType* slotObject, const std::string& slotId, void (SlotObjectType::*slot)(ArgTypes...),
-            EConnection::ConnectionType connectionType = EConnection::AUTO)
+            EConnection::ConnectionType connectionType = EConnection::AUTO,
+            bool isHiddenInGraphViz = false)
     {
         //std::cout<<"connecting "<<signalObject<<"-"<<signalId<<" to "<<slotObject<<"-"<<slotId<<std::endl;
         std::unique_lock<std::shared_mutex> lock(ELookup::instance().getGlobalMutex());
         ELookup::instance().unprotectedAddConnection(
                 std::unique_ptr<EConnection::Connection<ArgTypes...>>(
                         new EConnection::Connection(signalObject, signalId, signal, slotObject, slotId, slot,
-                                                    connectionType)));
+                                                    connectionType, isHiddenInGraphViz)));
     }
 
     void move(EThread& ethread);
@@ -112,12 +115,15 @@ public:
             }
         }
     }
+
+    void setName(const std::string& name);
+    std::string name();
 protected:
     virtual void onMove(EThread& thread){}
     virtual void onRemove(){}
 private:
     EThread* mThreadInAffinity;
-
+    std::string mName;
 friend EThread;
 };
 

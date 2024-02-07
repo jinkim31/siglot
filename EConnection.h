@@ -20,11 +20,13 @@ public:
         GeneralizedConnection(
                 EObject *signalObject, const std::string& signalId,
                 EObject *slotObject, const std::string& slotId,
-                ConnectionType connectionType);
+                ConnectionType connectionType,
+                bool isHiddenInGraphViz);
         virtual ~GeneralizedConnection() = default;
         EObject *mSignalObject, *mSlotObject;
         const std::string mSignalId, mSlotId;
         const ConnectionType mConnectionType;
+        const bool mIsHiddenInGraphViz;
         size_t mCallCount;
     };
 
@@ -39,8 +41,8 @@ public:
                 SlotObjectType *slotObject,
                 const std::string& slotId,
                 void (SlotObjectType::*slot)(ArgTypes...),
-                ConnectionType connectionType)
-                : GeneralizedConnection(signalObject, signalId, slotObject, slotId, connectionType)
+                ConnectionType connectionType, bool isHiddenInGraphViz)
+                : GeneralizedConnection(signalObject, signalId, slotObject, slotId, connectionType, isHiddenInGraphViz)
         {
             mSignalObject = signalObject;
             mSlotObject = slotObject;

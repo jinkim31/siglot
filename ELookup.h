@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <optional>
 #include <typeindex>
+#include <graphviz/gvc.h>
 #include "EConnection.h"
 
 // forward declaration
@@ -38,6 +39,7 @@ public:
     void unprotectedAddConnection(std::unique_ptr<EConnection::GeneralizedConnection>&& connection);
     void unprotectedRemoveObjectConnection(EObject* object);
     std::shared_mutex& getGlobalMutex();
+    void dumpConnectionGraph(const std::string& fileName, bool showHiddenConnections = false);
 private:
     std::shared_mutex mGlobalMutex;
 };
