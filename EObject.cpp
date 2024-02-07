@@ -2,17 +2,18 @@
 
 void EObject::move(EThread& ethread)
 {
-    std::unique_lock<std::shared_mutex> lock(ELookup::instance().getMutex());
-    ELookup::instance().addObjectThreadMap(this, &ethread);
+    std::unique_lock<std::shared_mutex> lock(ELookup::instance().getGlobalMutex());
+    ELookup::instance().unprotectedAddObjectList(this);
+    mThreadInAffinity = &ethread;
     lock.unlock();
     onMove(ethread);
 }
 
 void EObject::remove()
 {
-    std::unique_lock<std::shared_mutex> lock(ELookup::instance().getMutex());
-    ELookup::instance().removeObjectThreadMap(this);
-    ELookup::instance().removeObjectConnection(this);
+    std::unique_lock<std::shared_mutex> lock(ELookup::instance().getGlobalMutex());
+    ELookup::instance().unprotectedRemoveObjectThreadMap(this);
+    ELookup::instance().unprotectedRemoveObjectConnection(this);
     lock.unlock();
     onRemove();
 }

@@ -28,10 +28,11 @@ public:
             EConnection::ConnectionType connectionType = EConnection::AUTO)
     {
         //std::cout<<"connecting "<<signalObject<<"-"<<signalId<<" to "<<slotObject<<"-"<<slotId<<std::endl;
-        std::unique_lock<std::shared_mutex> lock(ELookup::instance().getMutex());
-        ELookup::instance().addConnection(
+        std::unique_lock<std::shared_mutex> lock(ELookup::instance().getGlobalMutex());
+        ELookup::instance().unprotectedAddConnection(
                 std::unique_ptr<EConnection::Connection<ArgTypes...>>(
-                        new EConnection::Connection(signalObject, signalId, signal, slotObject, slotId, slot, connectionType)));
+                        new EConnection::Connection(signalObject, signalId, signal, slotObject, slotId, slot,
+                                                    connectionType)));
     }
 
     void move(EThread& ethread);
@@ -42,7 +43,7 @@ public:
     void emit(const std::string& signalId, void (SignalObjectType::*signal)(ArgTypes...), ArgTypes... args)
     {
         // shared-lock lookup
-        std::shared_lock<std::shared_mutex> lock(ELookup::instance().getMutex());
+        std::shared_lock<std::shared_mutex> lock(ELookup::instance().getGlobalMutex());
 
         // find connection
         // TODO: optimize search
@@ -67,24 +68,25 @@ public:
             connection->mCallCount++;
 
             // find signal slot thread
-            auto signalThread = ELookup::instance().mObjectThreadMap.find(connection->mSignalObject);
-            auto slotThread = ELookup::instance().mObjectThreadMap.find(connection->mSlotObject);
+            auto signalThread = connection->mSignalObject->mThreadInAffinity;
+            auto slotThread = connection->mSlotObject->mThreadInAffinity;
 
             // check thread validity
-            if(signalThread == ELookup::instance().mObjectThreadMap.end())
+            if(!signalThread)
             {
                 std::cerr<<"Signal EObject is not in any thread. use EObject::move(EThread*) to assign it to a thread."<<std::endl;
                 return;
             }
-            if(slotThread == ELookup::instance().mObjectThreadMap.end())
+            if(!slotThread)
             {
                 std::cerr<<"Slot EObject is not in any thread. use EObject::move(EThread*) to assign it to a thread."<<std::endl;
                 return;
             }
 
             // check if signal and slot objects are in the same thread
-            bool sameThread = ELookup::instance().mObjectThreadMap[this] == ELookup::instance().mObjectThreadMap[connection->mSlotObject];
+            bool sameThread = signalThread == slotThread;
 
+            // connect with given connection type
             switch(argTypeConnection->mConnectionType)
             {
             case EConnection::AUTO:
@@ -92,7 +94,7 @@ public:
                 if(sameThread)
                     argTypeConnection->mSlotCaller(args...);
                 else
-                    slotThread->second->pushEvent(connection->mSlotObject,std::bind(argTypeConnection->mSlotCaller,args...));
+                    slotThread->pushEvent(connection->mSlotObject,std::bind(argTypeConnection->mSlotCaller,args...));
                 break;
             }
             case EConnection::DIRECT:
@@ -104,7 +106,7 @@ public:
             }
             case EConnection::QUEUED:
             {
-                slotThread->second->pushEvent(connection->mSlotObject, std::bind(argTypeConnection->mSlotCaller, args...));
+                slotThread->pushEvent(connection->mSlotObject, std::bind(argTypeConnection->mSlotCaller, args...));
                 break;
             }
             }
@@ -113,6 +115,10 @@ public:
 protected:
     virtual void onMove(EThread& thread){}
     virtual void onRemove(){}
+private:
+    EThread* mThreadInAffinity;
+
+friend EThread;
 };
 
 

@@ -1,38 +1,33 @@
 
+## Thread-safe Procedures
+### Object Move
+1. Global mutex **unique** lock
+2. insert thread map
+3. Global mutex **unlock** unique 
+4. call EObject::onMove()
 
-object move
-1. EObject::move()
-2. lookup **unique** lock
-3. insert thread map
-4. lookup **unlock** unique 
-5. call EObject::onMove()
+### Object Remove
+1. Global mutex **unique** lock
+2. Remove from lookup object list
+3. Remove related connections from the connection graph
+4. Global mutex **unlock** unique
 
-object remove
-1. EObjet::remove()
-2. lookup **unique** lock
-3. remove thread map
-4. lookup remove connection graph
-5. lookup **unlock** unique
+### Signal-slot Connection
+1. Global mutex **unique** lock
+2. lookup push connection graph
+3. Global mutex **unique** unlock
 
-connect
-1. EObject::connect()
-2. lookup **unique** lock
-3. lookup push connection graph
-4. lookup **unique** unlock
+### Signal Emission
+1. Global mutex **shared** lock
+2. Find connections with matching signal
+3. Thread event queue **unique** lock
+4. Push event to thread event queue
+5. Thread event queue **unique** unlock
+6. Global mutex **shared** unlock
 
-emit
-1. EObject::emit
-2. lookup **shared** lock
-3. find connection
-4. thread **unique** lock
-5. lookup push event
-6. thread **unique** unlock
-7. lookup **shared** unlock
-
-step
-1. EObject::emit
-2. lookup **shared** lock
-4. thread **unique** lock
-5. execute event
-6. thread **unique** unlock
-7. lookup **shared** unlock
+### Thread Step
+1. Global mutex **shared** lock
+2. Thread event queue **unique** lock
+3. Execute event
+4. Thread event queue **unique** unlock
+5. Global mutex **shared** unlock

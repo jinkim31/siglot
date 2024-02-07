@@ -9,49 +9,41 @@ ELookup::~ELookup()
         std::cerr<<"Connection graph is not empty on lookup destruction. "
                    "Make sure to remove objects before they get destructed."<<std::endl;
     }
-    if(!mObjectThreadMap.empty())
+    if(!mObjectList.empty())
     {
         std::cerr<<"Object-thread map is not empty on lookup destruction. "
                    "Make sure to remove objects before they get destructed."<<std::endl;
     }
 }
 
-std::shared_mutex &ELookup::getMutex()
+std::shared_mutex &ELookup::getGlobalMutex()
 {
-    return mMutex;
+    return mGlobalMutex;
 }
 
-void ELookup::addObjectThreadMap(EObject *object, EThread *thread)
+void ELookup::unprotectedAddObjectList(EObject *object)
 {
-    mObjectThreadMap[object] = thread;
-    //std::cout<<"object thread map added "<<mObjectThreadMap.size()<<std::endl;
+    if(std::find(mObjectList.begin(), mObjectList.end(),object) == mObjectList.end())
+        mObjectList.push_back(object);
 }
 
-void ELookup::removeObjectThreadMap(EObject *object)
+void ELookup::unprotectedRemoveObjectThreadMap(EObject *object)
 {
-    auto iter = mObjectThreadMap.find(object) ;
-    if( iter == mObjectThreadMap.end() )
-        std::cerr<<"removeObjectThreadMap() object not found"<<std::endl;
-    mObjectThreadMap.erase( iter );
+    mObjectList.erase(
+            std::remove_if(mObjectList.begin(), mObjectList.end(),
+                           [&](auto& iter) {return iter==object;}),
+            mObjectList.end());
 }
 
-void ELookup::addConnection(std::unique_ptr<EConnection::GeneralizedConnection> &&connection)
+void ELookup::unprotectedAddConnection(std::unique_ptr<EConnection::GeneralizedConnection> &&connection)
 {
     mConnectionGraph.push_back(std::move(connection));
 }
 
-void ELookup::removeObjectConnection(EObject *object)
+void ELookup::unprotectedRemoveObjectConnection(EObject *object)
 {
     mConnectionGraph.erase(
             std::remove_if(mConnectionGraph.begin(), mConnectionGraph.end(),
                            [&](auto& iter) {return  iter->mSignalObject == object || iter->mSlotObject == object;}),
             mConnectionGraph.end());
-}
-
-std::optional<EThread*> ELookup::searchObjectThreadMap(EObject* object)
-{
-    auto iter = mObjectThreadMap.find(object);
-    if(iter == mObjectThreadMap.end())
-        return std::nullopt;
-    return iter->second;
 }

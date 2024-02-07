@@ -1,5 +1,6 @@
 #include "EThread.h"
 #include "ELookup.h"
+#include "EObject.h"
 
 EThread::EThread()
 {
@@ -44,7 +45,7 @@ void EThread::runEventLoop()
 
 void EThread::step()
 {
-    std::shared_lock<std::shared_mutex> lookupLock(ELookup::instance().getMutex());
+    std::shared_lock<std::shared_mutex> lookupLock(ELookup::instance().getGlobalMutex());
     std::unique_lock<std::shared_mutex> lock(mMutex);
     size_t nQueued = mEventQueue.size();
     lock.unlock();
@@ -56,15 +57,15 @@ void EThread::step()
         auto front = std::move(mEventQueue.front());
         mEventQueue.pop();
         lock.unlock();
-        auto slotThread = ELookup::instance().searchObjectThreadMap(front.first);
-        if(!slotThread.has_value())
+
+        if(!front.first->mThreadInAffinity)
         {
             std::cerr<<"EXPECTED! Slot object not assigned to thread."<<std::endl;
             continue;
         }
-        if( slotThread.value()!=this)
+        if(front.first->mThreadInAffinity!=this)
         {
-            std::cout<<"EXPECTED! Queued event's thread mismatch. This could happen on object move or remove(slot object: "<<front.first<<", this thread: "<<this<<", slot thread: "<<slotThread.value()<<")."<<std::endl;
+            std::cout<<"EXPECTED! Queued event's thread mismatch. This could happen on object move or remove(slot object: "<<front.first<<", this thread: "<<this<<", slot thread: "<<front.first->mThreadInAffinity<<")."<<std::endl;
             continue;
         }
         front.second();

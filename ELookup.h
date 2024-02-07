@@ -31,15 +31,15 @@ private:
 
 // struct
 public:
-    std::shared_mutex mMutex;
-    std::unordered_map<EObject*, EThread*> mObjectThreadMap; // map of active objects and their threads in affinity
+    std::vector<EObject*> mObjectList; // map of active objects and their threads in affinity
     std::vector<std::unique_ptr<EConnection::GeneralizedConnection>> mConnectionGraph; // edge list of active connection graph
-    std::optional<EThread*> searchObjectThreadMap(EObject* object);
-    void addObjectThreadMap(EObject* object, EThread* thread);
-    void removeObjectThreadMap(EObject* object);
-    void addConnection(std::unique_ptr<EConnection::GeneralizedConnection>&& connection);
-    void removeObjectConnection(EObject* object);
-    std::shared_mutex& getMutex();
+    void unprotectedAddObjectList(EObject* object);
+    void unprotectedRemoveObjectThreadMap(EObject* object);
+    void unprotectedAddConnection(std::unique_ptr<EConnection::GeneralizedConnection>&& connection);
+    void unprotectedRemoveObjectConnection(EObject* object);
+    std::shared_mutex& getGlobalMutex();
+private:
+    std::shared_mutex mGlobalMutex;
 };
 
 #endif
