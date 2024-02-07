@@ -1,9 +1,8 @@
-#ifndef ETHREAD2_ECONNECTION_H
-#define ETHREAD2_ECONNECTION_H
+#ifndef SIGLOT_CONNECTION_H
+#define SIGLOT_CONNECTION_H
 
 #include <iostream>
 #include <memory>
-#include <typeindex>
 
 class Object;
 
@@ -57,4 +56,4 @@ struct Connection : public GeneralizedConnection
 };
 
 }
-#endif //ETHREAD2_ECONNECTION_H
+#endif

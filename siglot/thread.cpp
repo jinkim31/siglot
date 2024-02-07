@@ -5,11 +5,18 @@
 Thread::Thread()
 {
     mEventLoopBreakFlag = false;
+    mName = "thread";
 }
 
 Thread::~Thread()
 {
     stop();
+}
+
+void Thread::setName(const std::string &name)
+{
+    std::unique_lock<std::shared_mutex> lock(Lookup::instance().getGlobalMutex());
+    mName = name;
 }
 
 void Thread::start()

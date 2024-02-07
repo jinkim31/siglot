@@ -7,10 +7,10 @@ class Producer : public Object
 public:
     Producer()
     {
-        connect(&mObserver, SIGLOT(Observer::observed), this, SIGLOT(Producer::observeCallback));
+        connect(&mObserver, SIGLOT(Observer::observed), this, SIGLOT(Producer::produce));
     }
     void SIGNAL ready(){}
-    void SLOT observeCallback()
+    void SLOT produce()
     {
         std::cout<<"producer signal"<<std::endl;
         emit(SIGLOT(Producer::ready));
@@ -34,7 +34,7 @@ private:
 class Consumer : public Object
 {
 public:
-    void SLOT process()
+    void SLOT consume()
     {
         std::cout<<"Consumer slot"<<std::endl;
     }
@@ -44,6 +44,10 @@ int main()
 {
     Thread producerThread1, producerThread2;
     Thread consumerThread;
+
+    producerThread1.setName("producer thread 1");
+    producerThread2.setName("producer thread 2");
+    consumerThread.setName("consumer thread");
 
     Producer producer1, producer2;
     Consumer consumer;
@@ -56,16 +60,15 @@ int main()
     producer2.move(producerThread2);
     consumer.move(consumerThread);
 
-    Object::connect(&producer1, SIGLOT(Producer::ready), &consumer, SIGLOT(Consumer::process));
-    Object::connect(&producer2, SIGLOT(Producer::ready), &consumer, SIGLOT(Consumer::process));
+    Object::connect(&producer1, SIGLOT(Producer::ready), &consumer, SIGLOT(Consumer::consume));
+    Object::connect(&producer2, SIGLOT(Producer::ready), &consumer, SIGLOT(Consumer::consume));
 
     producerThread1.start();
     producerThread2.start();
     consumerThread.start();
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    std::this_thread::sleep_for(std::chrono::seconds (1));
     Lookup::instance().dumpConnectionGraph("", true);
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
     producerThread1.stop();
     producerThread2.stop();

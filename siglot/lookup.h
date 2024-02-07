@@ -1,5 +1,5 @@
-#ifndef ETHREAD2_ELOOKUP_H
-#define ETHREAD2_ELOOKUP_H
+#ifndef SIGLOT_LOOKUP_H
+#define SIGLOT_LOOKUP_H
 
 #include <vector>
 #include <shared_mutex>

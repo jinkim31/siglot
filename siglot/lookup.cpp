@@ -73,10 +73,10 @@ void Lookup::dumpConnectionGraph(const std::string &fileName, bool showHiddenCon
         objectNameMap[connection->mSlotObject] = connection->mSlotObject->name();
 
         // thread subgraph name
-        ss << std::hex << connection->mSignalObject->mThreadInAffinity;
+        ss << connection->mSignalObject->mThreadInAffinity->mName << "\n(" << std::hex << connection->mSignalObject->mThreadInAffinity << ")";
         threadNameMap[connection->mSignalObject->mThreadInAffinity] = ss.str();
         ss.str(""); ss.clear();
-        ss << std::hex << connection->mSlotObject->mThreadInAffinity;
+        ss << connection->mSlotObject->mThreadInAffinity->mName << "\n(" << std::hex << connection->mSlotObject->mThreadInAffinity << ")";
         threadNameMap[connection->mSlotObject->mThreadInAffinity] = ss.str();
         ss.str(""); ss.clear();
     }

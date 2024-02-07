@@ -1,5 +1,5 @@
-#ifndef ETHREAD2_EOBJECT_H
-#define ETHREAD2_EOBJECT_H
+#ifndef SIGLOT_OBJECT_H
+#define SIGLOT_OBJECT_H
 
 #define SIGNAL
 #define SLOT
@@ -133,6 +133,5 @@ private:
 friend Thread;
 friend Lookup;
 };
-
 
 #endif

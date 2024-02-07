@@ -1,5 +1,5 @@
-#ifndef ETHREAD2_ETHREAD_H
-#define ETHREAD2_ETHREAD_H
+#ifndef SIGLOT_THREAD_H
+#define SIGLOT_THREAD_H
 
 #include <iostream>
 #include <thread>
@@ -18,8 +18,11 @@ public:
     void start();
     void stop();
     void step();
+    void setName(const std::string& name);
+
 private:
     std::thread mThread;
+    std::string mName;
     std::shared_mutex mMutex;
     std::atomic<bool> mEventLoopBreakFlag;
     std::queue<std::pair<Object*, std::function<void(void)>>> mEventQueue;
@@ -27,7 +30,7 @@ private:
     void pushEvent(Object *slotObject, std::function<void(void)> &&event);
     void runEventLoop();
 friend class Object;
+friend class Lookup;
 };
-
 
 #endif

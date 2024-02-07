@@ -1,5 +1,5 @@
-#ifndef ETHREAD2_EOBSERVER_H
-#define ETHREAD2_EOBSERVER_H
+#ifndef SIGLOT_OBSERVER_H
+#define SIGLOT_OBSERVER_H
 
 #include "object.h"
 #include "lookup.h"
@@ -49,6 +49,5 @@ private:
     bool mIsActive;
     bool mEmitObservedSignal;
 };
-
 
 #endif
