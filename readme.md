@@ -6,7 +6,6 @@ An asynchronous multithreading framework implementing Qt-like signal-slot patter
 ![test.png](image%2Ftest.png)
 
 ## TODO
-- thread name
 - thread status(n events in queue, queue push/pop ratio)
 
 ## Dependencies

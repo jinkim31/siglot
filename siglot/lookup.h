@@ -39,7 +39,7 @@ public:
     void unprotectedAddConnection(std::unique_ptr<Connection::GeneralizedConnection>&& connection);
     void unprotectedRemoveObjectConnection(Object* object);
     std::shared_mutex& getGlobalMutex();
-    void dumpConnectionGraph(const std::string& fileName, bool showHiddenConnections = false);
+    void dumpConnectionGraph(const std::string& fileFormat, const std::string& fileName, bool showHiddenConnections = false);
 private:
     std::shared_mutex mGlobalMutex;
 };

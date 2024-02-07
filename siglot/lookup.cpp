@@ -52,7 +52,7 @@ void Lookup::unprotectedRemoveObjectConnection(Object *object)
             mConnectionGraph.end());
 }
 
-void Lookup::dumpConnectionGraph(const std::string &fileName, bool showHiddenConnections)
+void Lookup::dumpConnectionGraph(const std::string& fileFormat, const std::string &fileName, bool showHiddenConnections)
 {
     // create gvc context and graph
     GVC_t *gvc = gvContext();
@@ -139,7 +139,7 @@ void Lookup::dumpConnectionGraph(const std::string &fileName, bool showHiddenCon
     gvLayout(gvc, g, "dot");
 
     // Output in .dot format
-    gvRender(gvc, g, "png", fopen("test.png", "w"));
+    gvRender(gvc, g, fileFormat.c_str(), fopen(fileName.c_str(), "w"));
     gvFreeLayout(gvc, g);
 
     agclose(g);
