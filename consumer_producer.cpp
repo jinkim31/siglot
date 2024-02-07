@@ -51,7 +51,7 @@ int main()
 
     producer1.setName("producer 1");
     producer2.setName("producer 2");
-    consumer.setName("Consumer");
+    consumer.setName("consumer");
 
     producer1.move(producerThread1);
     producer2.move(producerThread2);
@@ -70,7 +70,7 @@ int main()
     producerThread2.stop();
     consumerThread.stop();
 
-    ELookup::instance().dumpConnectionGraph("");
+    ELookup::instance().dumpConnectionGraph("", true);
 
     producer1.remove();
     producer2.remove();

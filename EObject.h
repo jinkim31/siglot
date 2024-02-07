@@ -125,6 +125,7 @@ private:
     EThread* mThreadInAffinity;
     std::string mName;
 friend EThread;
+friend ELookup;
 };
 
 

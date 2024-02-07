@@ -54,34 +54,54 @@ void ELookup::unprotectedRemoveObjectConnection(EObject *object)
 
 void ELookup::dumpConnectionGraph(const std::string &fileName, bool showHiddenConnections)
 {
-    std::shared_lock<std::shared_mutex> lookupLock(ELookup::instance().getGlobalMutex());
-    std::unordered_map<EObject*, std::string> objectClassNameMap;
-    for(const auto& connection : mConnectionGraph)
-    {
-        if(connection->mIsHiddenInGraphViz && !showHiddenConnections)
-            continue;
-        objectClassNameMap[connection->mSignalObject] = connection->mSignalObject->name();
-        objectClassNameMap[connection->mSlotObject] = connection->mSlotObject->name();
-    }
-
     // create gvc context and graph
     GVC_t *gvc = gvContext();
     Agraph_t *g = agopen("Connection Graph", Agdirected, 0);
 
+    // make object node and thread names
+    std::shared_lock<std::shared_mutex> lookupLock(ELookup::instance().getGlobalMutex());
+    std::unordered_map<EObject*, std::string> objectNameMap;
+    std::unordered_map<EThread*, std::string> threadNameMap;
+    std::stringstream ss;
+    for(const auto& connection : mConnectionGraph)
+    {
+        if(connection->mIsHiddenInGraphViz && !showHiddenConnections)
+            continue;
+
+        // object node names
+        objectNameMap[connection->mSignalObject] = connection->mSignalObject->name();
+        objectNameMap[connection->mSlotObject] = connection->mSlotObject->name();
+
+        // thread subgraph name
+        ss << std::hex << connection->mSignalObject->mThreadInAffinity;
+        threadNameMap[connection->mSignalObject->mThreadInAffinity] = ss.str();
+        ss.str(""); ss.clear();
+        ss << std::hex << connection->mSlotObject->mThreadInAffinity;
+        threadNameMap[connection->mSlotObject->mThreadInAffinity] = ss.str();
+        ss.str(""); ss.clear();
+    }
+
+    // make subgraphs
+    std::unordered_map<EThread*, Agraph_t*> threadMap;
+    for(const auto& threadNamePair : threadNameMap)
+    {
+        auto subgraph = agsubg(g,(char*)("cluster" + threadNamePair.second).c_str(), 1);
+        agsafeset(subgraph, "label", (char*)threadNamePair.second.c_str(), "");
+        threadMap[threadNamePair.first] = subgraph;
+    }
+
     // make object nodes
     std::unordered_map<EObject*, Agnode_t*> nodeMap;
-    for(const auto& objectClassNamePair : objectClassNameMap)
+    for(const auto& objectClassNamePair : objectNameMap)
     {
-        std::stringstream ss;
         ss << objectClassNamePair.second << "(" << std::hex << objectClassNamePair.first << ")";
-        auto node = agnode(g, &ss.str()[0], 1);
+        auto node = agnode(threadMap[objectClassNamePair.first->mThreadInAffinity], &ss.str()[0], 1);
+        ss.str(""); ss.clear();
         agsafeset(node, "shape", "box", "");
         nodeMap[objectClassNamePair.first] = node;
     }
 
     // make signal slot nodes and edges
-    std::vector<Agnode_t*> signalNodes, slotNodes;
-    std::stringstream ss;
     for(const auto& connection : mConnectionGraph)
     {
         if(connection->mIsHiddenInGraphViz && !showHiddenConnections)
@@ -89,15 +109,17 @@ void ELookup::dumpConnectionGraph(const std::string &fileName, bool showHiddenCo
 
         // signal node
         ss << connection->mSignalId << "(" << std::hex << connection->mSignalObject << ")";
-        auto signalNode = agnode(g, (char*)ss.str().c_str(), 1);
+        auto signalNode = agnode(threadMap[connection->mSignalObject->mThreadInAffinity], (char*)ss.str().c_str(), 1);
         agsafeset(signalNode, "color", "blue", "");
+        agsafeset(signalNode, "label", connection->mSignalId.c_str(), "");
         ss.str(""), ss.clear();
         // object-signal edge
         agedge(g, nodeMap[connection->mSignalObject], signalNode, "", 1);
         // slot node
         ss << connection->mSlotId << "(" << std::hex << connection->mSlotObject << ")";
-        auto slotNode = agnode(g, (char*)ss.str().c_str(), 1);
+        auto slotNode = agnode(threadMap[connection->mSlotObject->mThreadInAffinity], (char*)ss.str().c_str(), 1);
         agsafeset(slotNode, "color", "orange", "");
+        agsafeset(slotNode, "label", connection->mSlotId.c_str(), "");
         ss.str(""), ss.clear();
         // slot-object edge
         agedge(g, slotNode, nodeMap[connection->mSlotObject], "", 1);
