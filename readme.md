@@ -1,7 +1,7 @@
 
 # SIGLOT
 
-A multithreading framework implementing Qt-like signal-slot pattern.
+An asynchronous multithreading framework implementing Qt-like signal-slot pattern.
 
 ![test.png](image%2Ftest.png)
 
