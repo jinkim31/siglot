@@ -1,7 +1,7 @@
 #include <iostream>
-#include "EObject.h"
-#include "EThread.h"
-#include "EObserver.h"
+#include "../src/EObject.h"
+#include "../src/EThread.h"
+#include "../src/EObserver.h"
 
 class Producer : public EObject
 {

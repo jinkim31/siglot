@@ -1,14 +1,16 @@
 cmake_minimum_required(VERSION 3.26)
-project(ethread2)
+project(siglot)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(ethread2 consumer_producer.cpp EObject.cpp
-        EThread.h
-        ELookup.h
-        ELookup.cpp
-        EThread.cpp
-        EObserver.cpp
-        EConnection.h
-        EConnection.cpp)
-target_link_libraries(ethread2 PRIVATE gvc cgraph)
+add_library(siglot SHARED
+    src/EObject.cpp
+    src/EThread.cpp
+    src/EConnection.cpp
+    src/ELookup.cpp
+    src/EObserver.cpp)
+target_link_libraries(siglot PRIVATE gvc cgraph)
+target_include_directories(siglot PUBLIC src)
+
+add_executable(example_consumer_producer example/consumer_producer.cpp)
+target_link_libraries(example_consumer_producer PRIVATE siglot)
