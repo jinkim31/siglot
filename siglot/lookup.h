@@ -10,7 +10,7 @@
 #include <optional>
 #include <typeindex>
 #include <graphviz/gvc.h>
-#include "Connection.h"
+#include "connection.h"
 
 // forward declaration
 class Thread;

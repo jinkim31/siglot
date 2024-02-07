@@ -1,9 +1,9 @@
-#include "Lookup.h"
+#include "lookup.h"
 #include <algorithm>
 #include <iostream>
 #include <string>
 #include <sstream>
-#include "Object.h"
+#include "object.h"
 
 Lookup::~Lookup()
 {

@@ -1,6 +1,6 @@
-#include "Thread.h"
-#include "Lookup.h"
-#include "Object.h"
+#include "thread.h"
+#include "lookup.h"
+#include "object.h"
 
 Thread::Thread()
 {

@@ -11,9 +11,9 @@
 #include <iostream>
 #include <functional>
 #include <memory>
-#include "Thread.h"
-#include "Lookup.h"
-#include "Connection.h"
+#include "thread.h"
+#include "lookup.h"
+#include "connection.h"
 
 class Object;
 class Thread;

@@ -1,4 +1,4 @@
-#include "Connection.h"
+#include "connection.h"
 
 Connection::GeneralizedConnection::GeneralizedConnection(
         Object *signalObject, const std::string& signalId,

@@ -1,6 +1,6 @@
 #include <iostream>
-#include <siglot/Object.h>
-#include <siglot/Observer.h>
+#include <siglot/object.h>
+#include <siglot/observer.h>
 
 class Producer : public Object
 {

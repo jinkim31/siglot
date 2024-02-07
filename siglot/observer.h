@@ -1,8 +1,8 @@
 #ifndef ETHREAD2_EOBSERVER_H
 #define ETHREAD2_EOBSERVER_H
 
-#include "Object.h"
-#include "Lookup.h"
+#include "object.h"
+#include "lookup.h"
 #include <chrono>
 
 class Observer : public Object
