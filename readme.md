@@ -1,4 +1,8 @@
 
+## TODO
+- thread name
+- thread status(n events in queue, queue push/pop ratio)
+
 ## Thread-safe Procedures
 ### Object Move
 1. Global mutex **unique** lock
