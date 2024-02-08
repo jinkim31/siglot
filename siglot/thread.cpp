@@ -2,44 +2,44 @@
 #include "lookup.h"
 #include "object.h"
 
-Thread::Thread()
+siglot::Thread::Thread()
 {
     mEventLoopBreakFlag = false;
     mName = "thread";
 }
 
-Thread::~Thread()
+siglot::Thread::~Thread()
 {
     stop();
 }
 
-void Thread::setName(const std::string &name)
+void siglot::Thread::setName(const std::string &name)
 {
     std::unique_lock<std::shared_mutex> lock(Lookup::instance().getGlobalMutex());
     mName = name;
 }
 
-void Thread::start()
+void siglot::Thread::start()
 {
     mThread = std::thread(Thread::entryPoint, this);
     mEventLoopBreakFlag = false;
 }
 
-void Thread::stop()
+void siglot::Thread::stop()
 {
     mEventLoopBreakFlag = true;
     if(mThread.joinable())
         mThread.join();
 }
 
-void *Thread::entryPoint(void *param)
+void *siglot::Thread::entryPoint(void *param)
 {
     auto* ethreadPtr = (Thread*)param;
     ethreadPtr->runEventLoop();
     return nullptr;
 }
 
-void Thread::runEventLoop()
+void siglot::Thread::runEventLoop()
 {
     while(true)
     {
@@ -50,7 +50,7 @@ void Thread::runEventLoop()
     }
 }
 
-void Thread::step()
+void siglot::Thread::step()
 {
     std::shared_lock<std::shared_mutex> lookupLock(Lookup::instance().getGlobalMutex());
     std::unique_lock<std::shared_mutex> lock(mMutex);
@@ -79,7 +79,7 @@ void Thread::step()
     }
 }
 
-void Thread::pushEvent(Object *slotObject, std::function<void(void)> &&event)
+void siglot::Thread::pushEvent(Object *slotObject, std::function<void(void)> &&event)
 {
     std::unique_lock<std::shared_mutex> lock(mMutex);
     mEventQueue.push(std::move(std::make_pair(slotObject, std::move(event))));

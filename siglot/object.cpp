@@ -1,11 +1,11 @@
 #include "object.h"
 
-Object::Object()
+siglot::Object::Object()
 {
     mName = "Object";
 }
 
-void Object::move(Thread& ethread)
+void siglot::Object::move(Thread& ethread)
 {
     std::unique_lock<std::shared_mutex> lock(Lookup::instance().getGlobalMutex());
     Lookup::instance().unprotectedAddObjectList(this);
@@ -14,7 +14,7 @@ void Object::move(Thread& ethread)
     onMove(ethread);
 }
 
-void Object::remove()
+void siglot::Object::remove()
 {
     std::unique_lock<std::shared_mutex> lock(Lookup::instance().getGlobalMutex());
     Lookup::instance().unprotectedRemoveObjectThreadMap(this);
@@ -23,13 +23,13 @@ void Object::remove()
     onRemove();
 }
 
-void Object::setName(const std::string &name)
+void siglot::Object::setName(const std::string &name)
 {
     std::unique_lock<std::shared_mutex> lock(Lookup::instance().getGlobalMutex());
     mName = name;
 }
 
-std::string Object::name()
+std::string siglot::Object::name()
 {
     std::shared_lock<std::shared_mutex> lock(Lookup::instance().getGlobalMutex());
     return mName;

@@ -1,6 +1,6 @@
 #include "connection.h"
 
-Connection::GeneralizedConnection::GeneralizedConnection(
+siglot::Connection::GeneralizedConnection::GeneralizedConnection(
         Object *signalObject, const std::string& signalId,
         Object *slotObject, const std::string& slotId,
         ConnectionType connectionType, bool isHiddenInGraphViz)

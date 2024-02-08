@@ -2,7 +2,8 @@
 #define SIGLOT_TIMER_H
 
 #include "observer.h"
-
+namespace siglot
+{
 class Timer : public Observer
 {
 public:
@@ -11,16 +12,20 @@ public:
         setName("timer");
         mPeriod = std::chrono::seconds(1);
     }
-    void SIGNAL timeout(){};
-    void SLOT setTimeout(const std::chrono::high_resolution_clock::duration& period)
+
+    void SIGNAL timeout()
+    {};
+
+    void SLOT setTimeout(const std::chrono::high_resolution_clock::duration &period)
     {
         mPeriod = period;
     }
+
 private:
     void observerCallback() override
     {
         auto timeNow = std::chrono::high_resolution_clock::now();
-        if((timeNow - mLastTimeoutTime) >= mPeriod)
+        if ((timeNow - mLastTimeoutTime) >= mPeriod)
         {
             emit(SIGLOT(Timer::timeout));
             mLastTimeoutTime = timeNow;
@@ -35,5 +40,5 @@ protected:
         mLastTimeoutTime = std::chrono::high_resolution_clock::now();
     }
 };
-
+}
 #endif

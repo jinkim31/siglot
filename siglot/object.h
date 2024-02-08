@@ -15,7 +15,10 @@
 #include "lookup.h"
 #include "connection.h"
 
+namespace siglot
+{
 class Object;
+
 class Thread;
 
 class Object
@@ -23,10 +26,10 @@ class Object
 public:
     Object();
 
-    template <typename SignalObjectType, typename SlotObjectType, typename... ArgTypes>
+    template<typename SignalObjectType, typename SlotObjectType, typename... ArgTypes>
     static void connect(
-            SignalObjectType* signalObject, const std::string& signalId, void (SignalObjectType::*signal)(ArgTypes...),
-            SlotObjectType* slotObject, const std::string& slotId, void (SlotObjectType::*slot)(ArgTypes...),
+            SignalObjectType *signalObject, const std::string &signalId, void (SignalObjectType::*signal)(ArgTypes...),
+            SlotObjectType *slotObject, const std::string &slotId, void (SlotObjectType::*slot)(ArgTypes...),
             Connection::ConnectionType connectionType = Connection::AUTO,
             bool isHiddenInGraphViz = false)
     {
@@ -38,12 +41,12 @@ public:
                                                    connectionType, isHiddenInGraphViz)));
     }
 
-    void move(Thread& ethread);
+    void move(Thread &ethread);
 
     void remove();
 
-    template <typename SignalObjectType, typename... ArgTypes>
-    void emit(const std::string& signalId, void (SignalObjectType::*signal)(ArgTypes...), ArgTypes... args)
+    template<typename SignalObjectType, typename... ArgTypes>
+    void emit(const std::string &signalId, void (SignalObjectType::*signal)(ArgTypes...), ArgTypes... args)
     {
         // shared-lock lookup
         std::shared_lock<std::shared_mutex> lock(Lookup::instance().getGlobalMutex());
@@ -51,11 +54,11 @@ public:
         // find connection
         // TODO: optimize search
         //std::cout<<"target"<<this<<"::"<<std::type_index(typeid(signal)).name()<<std::endl;
-        for(auto& connection  : Lookup::instance().mConnectionGraph)
+        for (auto &connection: Lookup::instance().mConnectionGraph)
         {
             // find connection
             //std::cout<<"iter"<<connection->mSignalObject<<"-"<<connection->mSignalId<<std::endl;
-            if(!(connection->mSignalObject == this && connection->mSignalId == signalId))
+            if (!(connection->mSignalObject == this && connection->mSignalId == signalId))
                 continue;
 
             // cast connection to typed connection
@@ -81,14 +84,17 @@ public:
             auto slotThread = connection->mSlotObject->mThreadInAffinity;
 
             // check thread validity
-            if(!signalThread)
+            if (!signalThread)
             {
-                std::cerr<<"Signal EObject is not in any thread. use EObject::move(EThread*) to assign it to a thread."<<std::endl;
+                std::cerr
+                        << "Signal EObject is not in any thread. use EObject::move(EThread*) to assign it to a thread."
+                        << std::endl;
                 return;
             }
-            if(!slotThread)
+            if (!slotThread)
             {
-                std::cerr<<"Slot EObject is not in any thread. use EObject::move(EThread*) to assign it to a thread."<<std::endl;
+                std::cerr << "Slot EObject is not in any thread. use EObject::move(EThread*) to assign it to a thread."
+                          << std::endl;
                 return;
             }
 
@@ -96,42 +102,48 @@ public:
             bool sameThread = signalThread == slotThread;
 
             // connect with given connection type
-            switch(argTypeConnection->mConnectionType)
+            switch (argTypeConnection->mConnectionType)
             {
-            case Connection::AUTO:
-            {
-                if(sameThread)
+                case Connection::AUTO:
+                {
+                    if (sameThread)
+                        argTypeConnection->mSlotCaller(args...);
+                    else
+                        slotThread->pushEvent(connection->mSlotObject,
+                                              std::bind(argTypeConnection->mSlotCaller, args...));
+                    break;
+                }
+                case Connection::DIRECT:
+                {
+                    if (!sameThread)
+                        throw std::runtime_error("Direct connection between EObject from different threads.");
                     argTypeConnection->mSlotCaller(args...);
-                else
-                    slotThread->pushEvent(connection->mSlotObject,std::bind(argTypeConnection->mSlotCaller,args...));
-                break;
-            }
-            case Connection::DIRECT:
-            {
-                if (!sameThread)
-                    throw std::runtime_error("Direct connection between EObject from different threads.");
-                argTypeConnection->mSlotCaller(args...);
-                break;
-            }
-            case Connection::QUEUED:
-            {
-                slotThread->pushEvent(connection->mSlotObject, std::bind(argTypeConnection->mSlotCaller, args...));
-                break;
-            }
+                    break;
+                }
+                case Connection::QUEUED:
+                {
+                    slotThread->pushEvent(connection->mSlotObject, std::bind(argTypeConnection->mSlotCaller, args...));
+                    break;
+                }
             }
         }
     }
 
-    void setName(const std::string& name);
+    void setName(const std::string &name);
     std::string name();
 protected:
-    virtual void onMove(Thread& thread){}
-    virtual void onRemove(){}
+    virtual void onMove(Thread &thread)
+    {}
+
+    virtual void onRemove()
+    {}
+
 private:
-    Thread* mThreadInAffinity;
+    Thread *mThreadInAffinity;
     std::string mName;
-friend Thread;
-friend Lookup;
+    friend Thread;
+    friend Lookup;
 };
 
+}
 #endif

@@ -5,6 +5,8 @@
 #include "lookup.h"
 #include <chrono>
 
+namespace siglot
+{
 class Observer : public Object
 {
 public:
@@ -16,39 +18,51 @@ public:
         // direct connection would result in infinite selfCallSlot() recursion and stack overflow
         connect(this, SIGLOT(Observer::selfCallSignal), this, SIGLOT(Observer::selfCallSlot), Connection::QUEUED, true);
     }
+
     void start()
     {
-        if(mIsActive)
+        if (mIsActive)
             return;
         mIsActive = true;
         onStart();
         emit(SIGLOT(Observer::selfCallSignal));
     }
+
     void stop()
     {
-        if(!mIsActive)
+        if (!mIsActive)
             return;
         mIsActive = false;
         onStop();
     }
 
-    void SIGNAL observed(){}
+    void SIGNAL observed()
+    {}
+
 protected:
     virtual void observerCallback()
     {
         emit(SIGLOT(Observer::observed));
     }
-    virtual void onStart(){}
-    virtual void onStop(){}
+
+    virtual void onStart()
+    {}
+
+    virtual void onStop()
+    {}
+
 private:
-    void SIGNAL selfCallSignal(){}
+    void SIGNAL selfCallSignal()
+    {}
+
     void SLOT selfCallSlot()
     {
         observerCallback();
-        if(mIsActive)
+        if (mIsActive)
             emit(SIGLOT(Observer::selfCallSignal));
     }
+
     bool mIsActive;
 };
-
+}
 #endif

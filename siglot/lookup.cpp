@@ -5,7 +5,7 @@
 #include <sstream>
 #include "object.h"
 
-Lookup::~Lookup()
+siglot::Lookup::~Lookup()
 {
     if(!mConnectionGraph.empty())
     {
@@ -20,18 +20,18 @@ Lookup::~Lookup()
     }
 }
 
-std::shared_mutex &Lookup::getGlobalMutex()
+std::shared_mutex &siglot::Lookup::getGlobalMutex()
 {
     return mGlobalMutex;
 }
 
-void Lookup::unprotectedAddObjectList(Object *object)
+void siglot::Lookup::unprotectedAddObjectList(Object *object)
 {
     if(std::find(mObjectList.begin(), mObjectList.end(),object) == mObjectList.end())
         mObjectList.push_back(object);
 }
 
-void Lookup::unprotectedRemoveObjectThreadMap(Object *object)
+void siglot::Lookup::unprotectedRemoveObjectThreadMap(Object *object)
 {
     mObjectList.erase(
             std::remove_if(mObjectList.begin(), mObjectList.end(),
@@ -39,12 +39,12 @@ void Lookup::unprotectedRemoveObjectThreadMap(Object *object)
             mObjectList.end());
 }
 
-void Lookup::unprotectedAddConnection(std::unique_ptr<Connection::GeneralizedConnection> &&connection)
+void siglot::Lookup::unprotectedAddConnection(std::unique_ptr<Connection::GeneralizedConnection> &&connection)
 {
     mConnectionGraph.push_back(std::move(connection));
 }
 
-void Lookup::unprotectedRemoveObjectConnection(Object *object)
+void siglot::Lookup::unprotectedRemoveObjectConnection(Object *object)
 {
     mConnectionGraph.erase(
             std::remove_if(mConnectionGraph.begin(), mConnectionGraph.end(),
@@ -52,7 +52,7 @@ void Lookup::unprotectedRemoveObjectConnection(Object *object)
             mConnectionGraph.end());
 }
 
-void Lookup::dumpConnectionGraph(const std::string& fileFormat, const std::string &fileName, bool showHiddenConnections)
+void siglot::Lookup::dumpConnectionGraph(const std::string& fileFormat, const std::string &fileName, bool showHiddenConnections)
 {
     // create gvc context and graph
     GVC_t *gvc = gvContext();

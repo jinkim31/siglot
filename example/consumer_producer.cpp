@@ -2,6 +2,8 @@
 #include <siglot/object.h>
 #include <siglot/timer.h>
 
+using namespace siglot;
+
 class Producer : public Object
 {
 public:

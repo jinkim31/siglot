@@ -8,6 +8,8 @@
 #include <functional>
 #include <queue>
 
+namespace siglot
+{
 class Object;
 
 class Thread
@@ -18,19 +20,21 @@ public:
     void start();
     void stop();
     void step();
-    void setName(const std::string& name);
+    void setName(const std::string &name);
 
 private:
     std::thread mThread;
     std::string mName;
     std::shared_mutex mMutex;
     std::atomic<bool> mEventLoopBreakFlag;
-    std::queue<std::pair<Object*, std::function<void(void)>>> mEventQueue;
-    static void* entryPoint(void* param);
+    std::queue<std::pair<Object *, std::function<void(void)>>> mEventQueue;
+    static void *entryPoint(void *param);
     void pushEvent(Object *slotObject, std::function<void(void)> &&event);
     void runEventLoop();
-friend class Object;
-friend class Lookup;
-};
 
+    friend class Object;
+
+    friend class Lookup;
+};
+}
 #endif
