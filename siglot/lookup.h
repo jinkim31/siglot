@@ -32,6 +32,8 @@ private:
 
 // struct
 public:
+    void dumpConnectionGraph(const std::string& fileFormat, const std::string& fileName, bool showHiddenConnections = false);
+private:
     std::vector<Object*> mObjectList; // map of active objects and their threads in affinity
     std::vector<std::unique_ptr<Connection::GeneralizedConnection>> mConnectionGraph; // edge list of active connection graph
     void unprotectedAddObjectList(Object* object);
@@ -39,9 +41,9 @@ public:
     void unprotectedAddConnection(std::unique_ptr<Connection::GeneralizedConnection>&& connection);
     void unprotectedRemoveObjectConnection(Object* object);
     std::shared_mutex& getGlobalMutex();
-    void dumpConnectionGraph(const std::string& fileFormat, const std::string& fileName, bool showHiddenConnections = false);
-private:
     std::shared_mutex mGlobalMutex;
+friend class Object;
+friend class Thread;
 };
 
 #endif
