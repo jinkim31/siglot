@@ -28,8 +28,8 @@ public:
 
     template<typename SignalObjectType, typename SlotObjectType, typename... ArgTypes>
     static void connect(
-            SignalObjectType *signalObject, const std::string &signalId, void (SignalObjectType::*signal)(ArgTypes...),
-            SlotObjectType *slotObject, const std::string &slotId, void (SlotObjectType::*slot)(ArgTypes...),
+            SignalObjectType &signalObject, const std::string &signalId, void (SignalObjectType::*signal)(ArgTypes...),
+            SlotObjectType &slotObject, const std::string &slotId, void (SlotObjectType::*slot)(ArgTypes...),
             Connection::ConnectionType connectionType = Connection::AUTO,
             bool isHiddenInGraphViz = false)
     {
@@ -37,7 +37,8 @@ public:
         std::unique_lock<std::shared_mutex> lock(Lookup::instance().getGlobalMutex());
         Lookup::instance().unprotectedAddConnection(
                 std::unique_ptr<Connection::Connection<ArgTypes...>>(
-                        new Connection::Connection(signalObject, signalId, signal, slotObject, slotId, slot,
+                        new Connection::Connection(&signalObject, signalId, signal,
+                                                   &slotObject, slotId, slot,
                                                    connectionType, isHiddenInGraphViz)));
     }
 

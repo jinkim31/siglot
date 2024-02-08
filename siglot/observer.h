@@ -16,7 +16,7 @@ public:
         setName("observer");
         // queued connection is used even though the signal and the slot are in the same thread
         // direct connection would result in infinite selfCallSlot() recursion and stack overflow
-        connect(this, SIGLOT(Observer::selfCallSignal), this, SIGLOT(Observer::selfCallSlot), Connection::QUEUED, true);
+        connect(*this, SIGLOT(Observer::selfCallSignal), *this, SIGLOT(Observer::selfCallSlot), Connection::QUEUED, true);
     }
 
     void start()

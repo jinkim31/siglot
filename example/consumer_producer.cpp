@@ -10,7 +10,7 @@ public:
     Producer()
     {
         mTimer.setTimeout(std::chrono::microseconds((int)1000000.0/60));
-        connect(&mTimer, SIGLOT(Timer::timeout), this, SIGLOT(Producer::produce));
+        connect(mTimer, SIGLOT(Timer::timeout), *this, SIGLOT(Producer::produce));
     }
     void SIGNAL ready(){}
     void SLOT produce()
@@ -63,8 +63,8 @@ int main()
     producer2.move(producerThread2);
     consumer.move(consumerThread);
 
-    Object::connect(&producer1, SIGLOT(Producer::ready), &consumer, SIGLOT(Consumer::consume));
-    Object::connect(&producer2, SIGLOT(Producer::ready), &consumer, SIGLOT(Consumer::consume));
+    Object::connect(producer1, SIGLOT(Producer::ready), consumer, SIGLOT(Consumer::consume));
+    Object::connect(producer2, SIGLOT(Producer::ready), consumer, SIGLOT(Consumer::consume));
 
     producerThread1.start();
     producerThread2.start();
