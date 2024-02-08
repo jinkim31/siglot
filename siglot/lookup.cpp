@@ -57,6 +57,7 @@ void siglot::Lookup::dumpConnectionGraph(const std::string& fileFormat, const st
     // create gvc context and graph
     GVC_t *gvc = gvContext();
     Agraph_t *g = agopen("Connection Graph", Agdirected, 0);
+    agsafeset(g, "dpi", "300", "");
 
 
     std::shared_lock<std::shared_mutex> lookupLock(Lookup::instance().getGlobalMutex());
