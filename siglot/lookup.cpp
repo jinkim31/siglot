@@ -58,32 +58,26 @@ void siglot::Lookup::dumpConnectionGraph(const std::string& fileFormat, const st
     GVC_t *gvc = gvContext();
     Agraph_t *g = agopen("Connection Graph", Agdirected, 0);
 
-    // make object node and thread names
+
     std::shared_lock<std::shared_mutex> lookupLock(Lookup::instance().getGlobalMutex());
     std::unordered_map<Object*, std::string> objectNameMap;
     std::unordered_map<Thread*, std::string> threadNameMap;
     std::stringstream ss;
-    for(const auto& connection : mConnectionGraph)
-    {
-        if(connection->mIsHiddenInGraphViz && !showHiddenConnections)
-            continue;
 
-        // object node names
-        objectNameMap[connection->mSignalObject] = connection->mSignalObject->name();
-        objectNameMap[connection->mSlotObject] = connection->mSlotObject->name();
+    // make object, thread names
+    for(const auto& object : mObjectList)
+    {
+        // make object node names
+        objectNameMap[object] = object->name();
 
         // thread subgraph name
-        ss << connection->mSignalObject->mThreadInAffinity->mName
-        << "\n(" << std::hex << connection->mSignalObject->mThreadInAffinity << ")\n"
-        << connection->mSignalObject->mThreadInAffinity->mEventQueue.size()<<" events in queue";
-        threadNameMap[connection->mSignalObject->mThreadInAffinity] = ss.str();
-        ss.str(""); ss.clear();
-        ss << connection->mSlotObject->mThreadInAffinity->mName
-        << "\n(" << std::hex << connection->mSlotObject->mThreadInAffinity << ")\n"
-        << connection->mSlotObject->mThreadInAffinity->mEventQueue.size()<<" events in queue";;
-        threadNameMap[connection->mSlotObject->mThreadInAffinity] = ss.str();
+        ss << object->mThreadInAffinity->mName
+           << "\n(" << std::hex << object->mThreadInAffinity << ")\n"
+           << object->mThreadInAffinity->mEventQueue.size()<<" events in queue";
+        threadNameMap[object->mThreadInAffinity] = ss.str();
         ss.str(""); ss.clear();
     }
+
 
     // make subgraphs
     std::unordered_map<Thread*, Agraph_t*> threadMap;

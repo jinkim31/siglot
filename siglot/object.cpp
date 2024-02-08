@@ -3,6 +3,7 @@
 siglot::Object::Object()
 {
     mName = "Object";
+    mThreadInAffinity = nullptr;
 }
 
 void siglot::Object::move(Thread& ethread)
