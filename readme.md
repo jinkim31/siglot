@@ -5,9 +5,6 @@ An asynchronous multithreading framework implementing Qt-like signal-slot patter
 
 ![consumer_producer.png](image%2Fconsumer_producer.png)
 
-## TODO
-- thread status(n events in queue, queue push/pop ratio)
-
 ## Dependencies
 - [graphviz](https://graphviz.org)
 

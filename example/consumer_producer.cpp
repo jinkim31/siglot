@@ -7,7 +7,7 @@ class Producer : public Object
 public:
     Producer()
     {
-        mTimer.setTimeout(std::chrono::milliseconds(500));
+        mTimer.setTimeout(std::chrono::microseconds((int)1000000.0/60));
         connect(&mTimer, SIGLOT(Timer::timeout), this, SIGLOT(Producer::produce));
     }
     void SIGNAL ready(){}
@@ -68,7 +68,7 @@ int main()
     producerThread2.start();
     consumerThread.start();
 
-    std::this_thread::sleep_for(std::chrono::seconds (5));
+    std::this_thread::sleep_for(std::chrono::seconds(5));
     Lookup::instance().dumpConnectionGraph("png", "consumer_producer.png", true);
 
     producerThread1.stop();
