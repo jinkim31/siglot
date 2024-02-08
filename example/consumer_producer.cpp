@@ -69,7 +69,7 @@ int main()
     consumerThread.start();
 
     std::this_thread::sleep_for(std::chrono::seconds(5));
-    Lookup::instance().dumpConnectionGraph("png", "consumer_producer.png", true);
+    Lookup::instance().dumpConnectionGraph("png", "consumer_producer.png");
 
     producerThread1.stop();
     producerThread2.stop();
