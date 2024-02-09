@@ -50,7 +50,7 @@ struct Connection : public GeneralizedConnection
             const std::string &slotName,
             void (SlotObjectType::*slot)(ArgTypes...),
             ConnectionType connectionType, bool isHiddenInGraphViz)
-            : GeneralizedConnection(signalObject, signalName, slotObject, slotNamefixe, connectionType, isHiddenInGraphViz)
+            : GeneralizedConnection(signalObject, signalName, slotObject, slotName, connectionType, isHiddenInGraphViz)
     {
         mSignalObject = signalObject;
         mSlotObject = slotObject;
