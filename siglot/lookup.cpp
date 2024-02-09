@@ -108,20 +108,20 @@ void siglot::Lookup::dumpConnectionGraph(const std::string& fileFormat, const st
             continue;
 
         // signal node
-        ss << connection->mSignalId << "(" << std::hex << connection->mSignalObject << ")";
+        ss << connection->mSignalName << "(" << std::hex << connection->mSignalObject << ")";
         auto signalNode = agnode(threadMap[connection->mSignalObject->mThreadInAffinity], (char*)ss.str().c_str(), 1);
         agsafeset(signalNode, "color", "blue", "");
-        agsafeset(signalNode, "label", connection->mSignalId.c_str(), "");
+        agsafeset(signalNode, "label", connection->mSignalName.c_str(), "");
         ss.str(""), ss.clear();
 
         // object-signal edge
         agedge(g, nodeMap[connection->mSignalObject], signalNode, "", 1);
 
         // slot node
-        ss << connection->mSlotId << "(" << std::hex << connection->mSlotObject << ")";
+        ss << connection->mSlotName << "(" << std::hex << connection->mSlotObject << ")";
         auto slotNode = agnode(threadMap[connection->mSlotObject->mThreadInAffinity], (char*)ss.str().c_str(), 1);
         agsafeset(slotNode, "color", "orange", "");
-        agsafeset(slotNode, "label", connection->mSlotId.c_str(), "");
+        agsafeset(slotNode, "label", connection->mSlotName.c_str(), "");
         ss.str(""), ss.clear();
 
         // slot-object edge

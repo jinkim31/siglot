@@ -1,12 +1,13 @@
 #include "connection.h"
+#include "util.h"
 
 siglot::Connection::GeneralizedConnection::GeneralizedConnection(
-        Object *signalObject, const std::string& signalId,
-        Object *slotObject, const std::string& slotId,
+        Object *signalObject, const std::string& signalName,
+        Object *slotObject, const std::string& slotName,
         ConnectionType connectionType, bool isHiddenInGraphViz)
         :
-        mSignalObject(signalObject), mSignalId(signalId),
-        mSlotObject(slotObject), mSlotId(slotId),
+        mSignalObject(signalObject), mSignalName(signalName), mSignalId(functionNameWithNamespaceToSiglotId(signalName)),
+        mSlotObject(slotObject), mSlotName(slotName), mSlotId(functionNameWithNamespaceToSiglotId(slotName)),
         mConnectionType(connectionType), mIsHiddenInGraphViz(isHiddenInGraphViz)
 {
     mCallCount = 0;

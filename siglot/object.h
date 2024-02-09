@@ -14,6 +14,7 @@
 #include "thread.h"
 #include "lookup.h"
 #include "connection.h"
+#include "util.h"
 
 namespace siglot
 {
@@ -47,7 +48,7 @@ public:
     void remove();
 
     template<typename SignalObjectType, typename... ArgTypes>
-    void emit(const std::string &signalId, void (SignalObjectType::*signal)(ArgTypes...), ArgTypes... args)
+    void emit(const std::string &signalName, void (SignalObjectType::*signal)(ArgTypes...), ArgTypes... args)
     {
         // shared-lock lookup
         std::shared_lock<std::shared_mutex> lock(Lookup::instance().getGlobalMutex());
@@ -59,7 +60,7 @@ public:
         {
             // find connection
             //std::cout<<"iter"<<connection->mSignalObject<<"-"<<connection->mSignalId<<std::endl;
-            if (!(connection->mSignalObject == this && connection->mSignalId == signalId))
+            if (!(connection->mSignalObject == this && connection->mSignalId == functionNameWithNamespaceToSiglotId(signalName)))
                 continue;
 
             // cast connection to typed connection

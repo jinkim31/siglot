@@ -22,13 +22,13 @@ enum ConnectionType
 struct GeneralizedConnection
 {
     GeneralizedConnection(
-            Object *signalObject, const std::string &signalId,
-            Object *slotObject, const std::string &slotId,
+            Object *signalObject, const std::string &signalName,
+            Object *slotObject, const std::string &slotName,
             ConnectionType connectionType,
             bool isHiddenInGraphViz);
     virtual ~GeneralizedConnection() = default;
     Object *mSignalObject, *mSlotObject;
-    const std::string mSignalId, mSlotId;
+    const std::string  mSignalName, mSlotName, mSignalId, mSlotId;
     const ConnectionType mConnectionType;
     const bool mIsHiddenInGraphViz;
 
@@ -44,13 +44,13 @@ struct Connection : public GeneralizedConnection
     template<typename SignalObjectType, typename SlotObjectType>
     Connection(
             SignalObjectType *signalObject,
-            const std::string &signalId,
+            const std::string &signalName,
             void (SignalObjectType::*signal)(ArgTypes...),
             SlotObjectType *slotObject,
-            const std::string &slotId,
+            const std::string &slotName,
             void (SlotObjectType::*slot)(ArgTypes...),
             ConnectionType connectionType, bool isHiddenInGraphViz)
-            : GeneralizedConnection(signalObject, signalId, slotObject, slotId, connectionType, isHiddenInGraphViz)
+            : GeneralizedConnection(signalObject, signalName, slotObject, slotNamefixe, connectionType, isHiddenInGraphViz)
     {
         mSignalObject = signalObject;
         mSlotObject = slotObject;
