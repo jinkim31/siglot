@@ -54,10 +54,10 @@ int main()
     siglot::Thread serverThread, clientThread;
     Server server;
     Client client;
-    server.move(serverThread);
-    client.move(clientThread);
     serverThread.start();
     clientThread.start();
+    server.move(serverThread);
+    client.move(clientThread);
 
     std::this_thread::sleep_for(std::chrono::seconds(3));
 

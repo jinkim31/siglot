@@ -73,14 +73,14 @@ void siglot::Lookup::dumpConnectionGraph(const std::string& fileFormat, const st
 
         // thread subgraph name
         ss << object->mThreadInAffinity->mName
-           << "\n(" << std::hex << object->mThreadInAffinity << ")\n"
+           << "\n(" << object->mThreadInAffinity->mThread.get_id() << ")\n"
            << object->mThreadInAffinity->mEventQueue.size()<<" events in queue";
         threadNameMap[object->mThreadInAffinity] = ss.str();
         ss.str(""); ss.clear();
     }
 
 
-    // make subgraphs
+    // make thread subgraphs
     std::unordered_map<Thread*, Agraph_t*> threadMap;
     for(const auto& threadNamePair : threadNameMap)
     {

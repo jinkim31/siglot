@@ -63,7 +63,6 @@ public:
         for (auto &connection: Lookup::instance().mConnectionGraph)
         {
             // find connection
-            //std::cout<<"iter"<<connection->mSignalObject<<"-"<<connection->mSignalId<<std::endl;
             if (!(connection->mSignalObject == this && connection->mSignalId == functionNameWithNamespaceToSiglotId(signalName)))
                 continue;
 
@@ -145,26 +144,29 @@ public:
     }
 
     template<typename SlotObjectType, typename SlotObjectBaseType, typename... ArgTypes>
-    void callSlot(SlotObjectType& slotObject,
+    static void callSlot(SlotObjectType& slotObject,
                   const std::string &slotName, void (SlotObjectBaseType::*slot)(ArgTypes...), ArgTypes... args)
     {
         // slot object and slot type check
-        // TODO: do the same to emit()
         static_assert(std::is_convertible<SlotObjectType*, SlotObjectBaseType*>::value, "Derived must inherit Base as public");
 
         // shared-lock lookup
         std::shared_lock<std::shared_mutex> lock(Lookup::instance().getGlobalMutex());
-        auto signalThread = this->mThreadInAffinity;
-        auto slotThread = slotObject.mThreadInAffinity;
+        auto signalThreadId = std::this_thread::get_id();
+        auto slotThreadId = slotObject.mThreadInAffinity->mThread.get_id();
 
         // check if signal and slot objects are in the same thread
-        bool sameThread = signalThread == slotThread;
+        bool sameThread = signalThreadId == slotThreadId;
 
         // connect with given connection type
         if (sameThread)
+        {
             (slotObject.*slot)(args...);
+        }
         else
-            slotThread->pushEvent(&slotObject, std::move(std::bind(slot, slotObject, args...)));
+        {
+            slotObject.mThreadInAffinity->pushEvent(&slotObject, std::move(std::bind(slot, &slotObject, args...)));
+        }
     }
 
     void setName(const std::string &name);
