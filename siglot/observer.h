@@ -36,14 +36,10 @@ public:
         onStop();
     }
 
-    SIGNAL observed()
-    {}
+    SIGNAL observed(){}
 
 protected:
-    virtual void observerCallback()
-    {
-        emit(SIGLOT(Observer::observed));
-    }
+    virtual void observerCallback(){}
 
     virtual void onStart()
     {}
@@ -58,6 +54,7 @@ private:
     SLOT selfCallSlot()
     {
         observerCallback();
+        emit(SIGLOT(Observer::observed));
         if (mIsActive)
             emit(SIGLOT(Observer::selfCallSignal));
     }

@@ -27,13 +27,17 @@ class Object
 public:
     Object();
 
-    template<typename SignalObjectType, typename SlotObjectType, typename... ArgTypes>
+    template<typename SignalObjectType, typename SignalObjectBaseType, typename SlotObjectType, typename SlotObjectBaseType, typename... ArgTypes>
     static void connect(
-            SignalObjectType &signalObject, const std::string &signalId, void (SignalObjectType::*signal)(ArgTypes...),
-            SlotObjectType &slotObject, const std::string &slotId, void (SlotObjectType::*slot)(ArgTypes...),
+            SignalObjectType &signalObject, const std::string &signalId, void (SignalObjectBaseType::*signal)(ArgTypes...),
+            SlotObjectType &slotObject, const std::string &slotId, void (SlotObjectBaseType::*slot)(ArgTypes...),
             Connection::ConnectionType connectionType = Connection::AUTO,
             bool isHiddenInGraphViz = false)
     {
+        // check signal slot inheritance
+        static_assert(std::is_convertible<SignalObjectType*, SignalObjectBaseType*>::value, "Derived must inherit Base as public");
+        static_assert(std::is_convertible<SlotObjectType*, SlotObjectBaseType*>::value, "Derived must inherit Base as public");
+
         //std::cout<<"connecting "<<signalObject<<"-"<<signalId<<" to "<<slotObject<<"-"<<slotId<<std::endl;
         std::unique_lock<std::shared_mutex> lock(Lookup::instance().getGlobalMutex());
         Lookup::instance().unprotectedAddConnection(
@@ -63,15 +67,6 @@ public:
             if (!(connection->mSignalObject == this && connection->mSignalId == functionNameWithNamespaceToSiglotId(signalName)))
                 continue;
 
-            // cast connection to typed connection
-            // TODO: use static_cast instead after sufficient testing. Might be better to continue using dynamic_cast to support inherited signal, slot
-            auto *argTypeConnection = dynamic_cast<Connection::Connection<ArgTypes...> *>(connection.get());
-            if (argTypeConnection == nullptr)
-            {
-                std::cerr << "cast failed" << std::endl;
-                return;
-            }
-
             // update connection call frequency
             auto duration = std::chrono::high_resolution_clock::now().time_since_epoch();
             long long timeNow = std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
@@ -90,9 +85,18 @@ public:
             // increment connection call counter
             connection->mCallCount++;
 
+            // cast connection to typed connection
+            // TODO: use static_cast instead after sufficient testing. Might be better to continue using dynamic_cast to support inherited signal, slot
+            auto *argTypeConnection = dynamic_cast<Connection::Connection<ArgTypes...> *>(connection.get());
+            if (argTypeConnection == nullptr)
+            {
+                std::cerr << "cast failed" << std::endl;
+                return;
+            }
+
             // find signal slot thread
-            auto signalThread = connection->mSignalObject->mThreadInAffinity;
-            auto slotThread = connection->mSlotObject->mThreadInAffinity;
+            auto signalThread = argTypeConnection->mSignalObject->mThreadInAffinity;
+            auto slotThread = argTypeConnection->mSlotObject->mThreadInAffinity;
 
             // check thread validity
             if (!signalThread)
@@ -113,14 +117,14 @@ public:
             bool sameThread = signalThread == slotThread;
 
             // connect with given connection type
-            switch (argTypeConnection->mConnectionType)
+            switch (connection->mConnectionType)
             {
                 case Connection::AUTO:
                 {
                     if (sameThread)
                         argTypeConnection->mSlotCaller(args...);
                     else
-                        slotThread->pushEvent(connection->mSlotObject,
+                        slotThread->pushEvent(argTypeConnection->mSlotObject,
                                               std::bind(argTypeConnection->mSlotCaller, args...));
                     break;
                 }
@@ -133,11 +137,34 @@ public:
                 }
                 case Connection::QUEUED:
                 {
-                    slotThread->pushEvent(connection->mSlotObject, std::bind(argTypeConnection->mSlotCaller, args...));
+                    slotThread->pushEvent(argTypeConnection->mSlotObject, std::bind(argTypeConnection->mSlotCaller, args...));
                     break;
                 }
             }
         }
+    }
+
+    template<typename SlotObjectType, typename SlotObjectBaseType, typename... ArgTypes>
+    void callSlot(SlotObjectType& slotObject,
+                  const std::string &slotName, void (SlotObjectBaseType::*slot)(ArgTypes...), ArgTypes... args)
+    {
+        // slot object and slot type check
+        // TODO: do the same to emit()
+        static_assert(std::is_convertible<SlotObjectType*, SlotObjectBaseType*>::value, "Derived must inherit Base as public");
+
+        // shared-lock lookup
+        std::shared_lock<std::shared_mutex> lock(Lookup::instance().getGlobalMutex());
+        auto signalThread = this->mThreadInAffinity;
+        auto slotThread = slotObject.mThreadInAffinity;
+
+        // check if signal and slot objects are in the same thread
+        bool sameThread = signalThread == slotThread;
+
+        // connect with given connection type
+        if (sameThread)
+            (slotObject.*slot)(args...);
+        else
+            slotThread->pushEvent(&slotObject, std::move(std::bind(slot, slotObject, args...)));
     }
 
     void setName(const std::string &name);

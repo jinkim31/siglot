@@ -16,7 +16,7 @@ public:
     SIGNAL timeout()
     {};
 
-    SLOT setTimeout(const std::chrono::high_resolution_clock::duration &period)
+    SLOT setTimeout(std::chrono::high_resolution_clock::duration period)
     {
         mPeriod = period;
     }

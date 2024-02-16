@@ -16,5 +16,8 @@ target_include_directories(siglot PUBLIC .)
 add_executable(example_consumer_producer example/consumer_producer.cpp)
 target_link_libraries(example_consumer_producer PRIVATE siglot)
 
+add_executable(example_server_client example/server_client.cpp)
+target_link_libraries(example_server_client PRIVATE siglot)
+
 add_executable(test example/test.cpp)
 target_link_libraries(test PRIVATE siglot)

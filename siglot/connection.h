@@ -41,17 +41,20 @@ struct GeneralizedConnection
 template<typename... ArgTypes>
 struct Connection : public GeneralizedConnection
 {
-    template<typename SignalObjectType, typename SlotObjectType>
+    template<typename SignalObjectType, typename SignalObjectBaseType, typename SlotObjectType, typename SlotObjectBaseType>
     Connection(
             SignalObjectType *signalObject,
             const std::string &signalName,
-            void (SignalObjectType::*signal)(ArgTypes...),
+            void (SignalObjectBaseType::*signal)(ArgTypes...),
             SlotObjectType *slotObject,
             const std::string &slotName,
-            void (SlotObjectType::*slot)(ArgTypes...),
+            void (SlotObjectBaseType::*slot)(ArgTypes...),
             ConnectionType connectionType, bool isHiddenInGraphViz)
             : GeneralizedConnection(signalObject, signalName, slotObject, slotName, connectionType, isHiddenInGraphViz)
     {
+        static_assert(std::is_convertible<SignalObjectType*, SignalObjectBaseType*>::value, "Derived must inherit Base as public");
+        static_assert(std::is_convertible<SlotObjectType*, SlotObjectBaseType*>::value, "Derived must inherit Base as public");
+
         mSignalObject = signalObject;
         mSlotObject = slotObject;
         mSlotCaller = [=](ArgTypes... args)
