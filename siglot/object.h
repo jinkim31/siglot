@@ -1,8 +1,8 @@
 #ifndef SIGLOT_OBJECT_H
 #define SIGLOT_OBJECT_H
 
-#define SIGNAL
-#define SLOT
+#define SIGNAL void
+#define SLOT void
 
 #define SIGLOT(x) #x, & x
 

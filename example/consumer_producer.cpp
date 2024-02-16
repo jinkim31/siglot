@@ -12,8 +12,8 @@ public:
         mTimer.setTimeout(std::chrono::microseconds((int)1000000.0/60));
         connect(mTimer, SIGLOT(Timer::timeout), *this, SIGLOT(Producer::produce));
     }
-    void SIGNAL ready(){}
-    void SLOT produce()
+    SIGNAL ready(){}
+    SLOT produce()
     {
         std::cout<<"producer signal"<<std::endl;
         emit(SIGLOT(Producer::ready));
@@ -37,7 +37,7 @@ private:
 class Consumer : public Object
 {
 public:
-    void SLOT consume()
+    SLOT consume()
     {
         std::cout<<"Consumer slot"<<std::endl;
     }

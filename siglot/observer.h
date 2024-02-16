@@ -36,7 +36,7 @@ public:
         onStop();
     }
 
-    void SIGNAL observed()
+    SIGNAL observed()
     {}
 
 protected:
@@ -52,10 +52,10 @@ protected:
     {}
 
 private:
-    void SIGNAL selfCallSignal()
+    SIGNAL selfCallSignal()
     {}
 
-    void SLOT selfCallSlot()
+    SLOT selfCallSlot()
     {
         observerCallback();
         if (mIsActive)
