@@ -52,7 +52,7 @@ public:
     void remove();
 
     template<typename SignalObjectType, typename... ArgTypes>
-    void emit(const std::string &signalName, void (SignalObjectType::*signal)(ArgTypes...), ArgTypes... args)
+    void emit(const std::string &signalName, void (SignalObjectType::*signal)(ArgTypes...), ArgTypes&&... args)
     {
         // shared-lock lookup
         std::shared_lock<std::shared_mutex> lock(Lookup::instance().getGlobalMutex());

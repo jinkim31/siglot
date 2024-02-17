@@ -5,13 +5,12 @@
 class Server : public siglot::Object
 {
 public:
-    SLOT addRequest(std::string str)
-    {
+    SIGLOT_SERVER(Server, bool, add, (std::string str), {
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
         mDatabase.push_back(str);
-        emit(SIGLOT(Server::addResponded), true);
-    }
-    SIGNAL addResponded(bool successful){}
+        return true;
+    })
+
 private:
     std::vector<std::string> mDatabase;
 };
@@ -19,20 +18,24 @@ private:
 class Client : public siglot::Object
 {
 public:
+
     Client()
     {
         connect(mTimer, SIGLOT(siglot::Timer::timeout), *this, SIGLOT(Client::timerCallback));
     }
+
     SIGNAL addRequested(std::string str){}
     SLOT addRespond(bool successful)
     {
         std::cout<<"add successful: "<<successful<<std::endl;
     }
+
+
 private:
     siglot::Timer mTimer;
     SLOT timerCallback()
     {
-
+        emit(SIGLOT(Client::addRequested), std::string("hello"));
     }
 protected:
     void onMove(siglot::Thread &thread) override
@@ -54,6 +57,8 @@ int main()
     siglot::Thread serverThread, clientThread;
     Server server;
     Client client;
+    //siglot::Object::connect(client, SIGLOT(Client::addRequested), server, SIGLOT(Server::add));
+    //siglot::Object::connect(server, SIGLOT(Server::added), client, SIGLOT(Client::addRespond));
     serverThread.start();
     clientThread.start();
     server.move(serverThread);
