@@ -16,6 +16,12 @@ target_include_directories(siglot PUBLIC .)
 add_executable(example_consumer_producer example/consumer_producer.cpp)
 target_link_libraries(example_consumer_producer PRIVATE siglot)
 
+add_executable(example_consumer_producer_copy example/consumer_producer_copy.cpp)
+target_link_libraries(example_consumer_producer_copy PRIVATE siglot)
+
+add_executable(example_consumer_producer_move example/consumer_producer_move.cpp)
+target_link_libraries(example_consumer_producer_move PRIVATE siglot)
+
 add_executable(example_server_client example/server_client.cpp)
 target_link_libraries(example_server_client PRIVATE siglot)
 
