@@ -82,5 +82,5 @@ void siglot::Thread::step()
 void siglot::Thread::pushEvent(Object *slotObject, std::function<void(void)> &&event)
 {
     std::unique_lock<std::shared_mutex> lock(mMutex);
-    mEventQueue.push(std::move(std::make_pair(slotObject, std::move(event))));
+    mEventQueue.emplace(slotObject, std::move(event));
 }

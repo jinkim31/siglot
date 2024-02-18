@@ -28,7 +28,7 @@ struct GeneralizedConnection
             bool isHiddenInGraphViz);
     virtual ~GeneralizedConnection() = default;
     Object *mSignalObject, *mSlotObject;
-    const std::string  mSignalName, mSlotName, mSignalId, mSlotId;
+    const std::string mSignalName, mSlotName, mSignalId, mSlotId;
     const ConnectionType mConnectionType;
     const bool mIsHiddenInGraphViz;
 
@@ -38,30 +38,38 @@ struct GeneralizedConnection
     std::atomic<long long> mLastCallTime;
 };
 
-template<typename... ArgTypes>
+template<typename ... ArgTypes>
 struct Connection : public GeneralizedConnection
 {
+    // with param
     template<typename SignalObjectType, typename SignalObjectBaseType, typename SlotObjectType, typename SlotObjectBaseType>
     Connection(
             SignalObjectType *signalObject,
             const std::string &signalName,
-            void (SignalObjectBaseType::*signal)(ArgTypes...),
+            void (SignalObjectBaseType::*signal)(ArgTypes &&...),
             SlotObjectType *slotObject,
             const std::string &slotName,
-            void (SlotObjectBaseType::*slot)(ArgTypes...),
+            void (SlotObjectBaseType::*slot)(ArgTypes &&...),
             ConnectionType connectionType, bool isHiddenInGraphViz)
             : GeneralizedConnection(signalObject, signalName, slotObject, slotName, connectionType, isHiddenInGraphViz)
     {
-        static_assert(std::is_convertible<SignalObjectType*, SignalObjectBaseType*>::value, "Derived must inherit Base as public");
-        static_assert(std::is_convertible<SlotObjectType*, SlotObjectBaseType*>::value, "Derived must inherit Base as public");
+        static_assert(std::is_convertible<SignalObjectType *, SignalObjectBaseType *>::value,
+                      "Derived must inherit Base as public");
+        static_assert(std::is_convertible<SlotObjectType *, SlotObjectBaseType *>::value,
+                      "Derived must inherit Base as public");
 
         mSignalObject = signalObject;
         mSlotObject = slotObject;
-        mSlotCaller = [=](ArgTypes... args)
-        { (slotObject->*slot)(args...); }; // copy capture since slotObject will go out of scope
+        mSlotCaller = [=](ArgTypes &&... args)
+        {
+            if constexpr (sizeof...(ArgTypes) == 0U)
+                (slotObject->*slot)();
+            else
+                (slotObject->*slot)(std::move(args...));
+        };
     }
 
-    std::function<void(ArgTypes...)> mSlotCaller;
+    std::function<void(ArgTypes && ...)> mSlotCaller;
 };
 
 }
