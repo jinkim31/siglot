@@ -1,3 +1,7 @@
+/*
+ * This example shows basic use of threads, objects, and signal-slot pattern.
+ */
+
 #include <iostream>
 #include <siglot/object.h>
 #include <siglot/timer.h>
@@ -9,14 +13,15 @@ class Producer : public Object
 public:
     Producer()
     {
-        mTimer.setTimeout(std::chrono::microseconds((int)1000000.0/60));
+        mCounter = 0;
+        mTimer.setTimeout(std::chrono::milliseconds(100));
         connect(mTimer, SIGLOT(Timer::timeout), *this, SIGLOT(Producer::produce));
     }
-    SIGNAL ready(){}
+    SIGNAL ready(std::string&& str){}
     SLOT produce()
     {
-        std::cout<<"producer signal"<<std::endl;
-        emit(SIGLOT(Producer::ready));
+        std::cout<<"producer signal: "<<mCounter<<std::endl;
+        emit(SIGLOT(Producer::ready), std::to_string(mCounter++));
     }
 protected:
     void onMove(Thread &thread) override
@@ -32,14 +37,15 @@ protected:
     }
 private:
     Timer mTimer;
+    int mCounter;
 };
 
 class Consumer : public Object
 {
 public:
-    SLOT consume()
+    SLOT consume(std::string&& str)
     {
-        std::cout<<"Consumer slot"<<std::endl;
+        std::cout<<"Consumer slot: "<<str<<std::endl;
     }
 };
 

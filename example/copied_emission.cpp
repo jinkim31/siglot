@@ -1,7 +1,7 @@
 /*
  * This example shows copy emission of signal where the argument of Object::emit() is called by value and copied.
  * The copy emission is useful when the argument is small, and you don't want to move semantic.
- * In the process of signal emission and slot call, the argument is copied once.
+ * In the process of signal emission and slot call, the argument is copied once and moved 3 times.
  */
 
 #include <iostream>

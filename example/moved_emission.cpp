@@ -1,7 +1,7 @@
 /*
  * This example shows move emission of signal where the argument of Object::emit() is moved.
  * The copy emission is useful when the argument is large, and you want to avoid copy overhead.
- * In the process of signal emission and slot call, the argument is not copied.
+ * In the process of signal emission and slot call, the argument is moved 4 times.
  * Note that after using std::move(), the argument would become unusable in the signalling object.
  */
 
