@@ -65,7 +65,7 @@ struct Connection : public GeneralizedConnection
             if constexpr (sizeof...(ArgTypes) == 0U)
                 (slotObject->*slot)();
             else
-                (slotObject->*slot)(std::move(args...));
+                (slotObject->*slot)(std::move(args)...);
         };
     }
 

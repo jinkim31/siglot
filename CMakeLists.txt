@@ -21,3 +21,6 @@ target_link_libraries(example_copied_emission PRIVATE siglot)
 
 add_executable(example_moved_emission example/moved_emission.cpp)
 target_link_libraries(example_moved_emission PRIVATE siglot)
+
+add_executable(example_service example/service.cpp)
+target_link_libraries(example_service PRIVATE siglot)

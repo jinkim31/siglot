@@ -79,4 +79,6 @@ int main()
 
     producer.remove();
     consumer.remove();
+
+    return 0;
 }
