@@ -1,26 +1,15 @@
 #include <siglot/object.h>
 #include <siglot/timer.h>
 
-#define SIGLOT_ADD_FROM_FUNC(className, retType, funcName, paramTypes) \
-void SIGNAL_##funcName ( retType && ){}; \
-void SLOT_##funcName paramType { emit( #className "::" #funcName, className :: funcName , std::move(funcName())) }
-
-
 class Server : public siglot::Object
 {
 public:
-    std::string query(std::string&& query, int&& seq){
-        std::cout<<"Slot Server::SLOT_query called. Query string: "<<query<<std::endl;
+    std::string query(std::string&& queryStr){
+        std::cout<<"Slot Server::SLOT_query called. Query"<<queryStr<<std::endl;
         std::string result = "query result";
-        emit(SIGLOT(Server::SIGNAL_queryRetutn), std::move(result));
+        return result;
     }
-
-    SIGNAL SIGNAL_queryRetutn(std::string&& result){}
-    SLOT SLOT_query(std::string&& query, int&& seq){
-        std::cout<<"Slot Server::SLOT_query called. Query string: "<<query<<std::endl;
-        std::string result = "query result";
-        emit(SIGLOT(Server::SIGNAL_queryRetutn), std::move(result));
-    }
+    SIGLOT_ADD_FROM_FUNC(std::string, Server, query, std::string, queryStr)
 };
 
 class Client : public siglot::Object
@@ -32,7 +21,7 @@ public:
         mTimer.setTimeToLive(1);
         connect(mTimer, SIGLOT(siglot::Timer::timeout), *this, SIGLOT(Client::SLOT_timerCallback));
     }
-    SIGNAL SIGNAL_queryRequested(std::string&& query, int&& seq){}
+    SIGNAL SIGNAL_queryRequested(std::string&& query){}
     SLOT SLOT_nofifyQueryResult(std::string&& result)
     {
         std::cout<<"Client::notifyQueryResult called. Query result: "<<result<<std::endl;
@@ -40,7 +29,7 @@ public:
     void SLOT_timerCallback()
     {
         std::string queryStr = "query string";
-        emit(SIGLOT(Client::SIGNAL_queryRequested), std::move(queryStr), 123);
+        emit(SIGLOT(Client::SIGNAL_queryRequested), std::move(queryStr));
     }
 protected:
     void onMove(siglot::Thread &thread) override
@@ -63,7 +52,7 @@ int main()
     Client client;
 
     siglot::Object::connect(client, SIGLOT(Client::SIGNAL_queryRequested), server, SIGLOT(Server::SLOT_query));
-    siglot::Object::connect(server, SIGLOT(Server::SIGNAL_queryRetutn), client, SIGLOT(Client::SLOT_nofifyQueryResult));
+    siglot::Object::connect(server, SIGLOT(Server::SIGNAL_query), client, SIGLOT(Client::SLOT_nofifyQueryResult));
 
     siglot::Thread mainThread;
     server.move(mainThread);
