@@ -15,7 +15,7 @@ void SIGNAL_##funcName (){};\
 void  SLOT_##funcName ()\
 { funcName(); emit( #className "::SIGNAL_" #funcName, & className :: SIGNAL_##funcName); }
 
-#define SIGLOT_ADD_FROM_FUNC_1(className, funcName, param1Type, param1Name)\
+#define SIGLOT_ADD_FROM_FUNC_1(retType, className, funcName, param1Type, param1Name)\
 void SIGNAL_##funcName ( retType && ){};\
 void  SLOT_##funcName ( param1Type && param1Name)\
 { emit( #className "::SIGNAL_" #funcName, & className :: SIGNAL_##funcName , std::move(funcName(std::move(param1Name)))); }
