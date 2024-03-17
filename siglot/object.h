@@ -5,21 +5,42 @@
 #define SLOT void
 #define SIGLOT(x) #x, & x
 
-#define SIGLOT_ADD_FROM_FUNC(retType, className, funcName, param1Type, param1Name)\
+#define SIGLOT_ADD_FROM_FUNC(retType, className, funcName)\
+void SIGNAL_##funcName ( retType && ){};\
+void  SLOT_##funcName ()\
+{ emit( #className "::SIGNAL_" #funcName, & className :: SIGNAL_##funcName , std::move(funcName())); }
+
+#define SIGLOT_ADD_FROM_VOID_FUNC(className, funcName)\
+void SIGNAL_##funcName (){};\
+void  SLOT_##funcName ()\
+{ funcName(); emit( #className "::SIGNAL_" #funcName, & className :: SIGNAL_##funcName); }
+
+#define SIGLOT_ADD_FROM_FUNC_1(className, funcName, param1Type, param1Name)\
 void SIGNAL_##funcName ( retType && ){};\
 void  SLOT_##funcName ( param1Type && param1Name)\
 { emit( #className "::SIGNAL_" #funcName, & className :: SIGNAL_##funcName , std::move(funcName(std::move(param1Name)))); }
+
+#define SIGLOT_ADD_FROM_VOID_FUNC_1(className, funcName, param1Type, param1Name)\
+void SIGNAL_##funcName (){};\
+void  SLOT_##funcName ( param1Type && param1Name)\
+{ funcName(std::move(param1Name)); emit( #className "::SIGNAL_" #funcName, & className :: SIGNAL_##funcName); }
+
 
 #define SIGLOT_ADD_FROM_FUNC_2(retType, className, funcName, param1Type, param1Name, param2Type, param2Name)\
 void SIGNAL_##funcName ( retType && ){};\
 void  SLOT_##funcName ( param1Type && param1Name , param2Type && param2Name )\
 { emit( #className "::SIGNAL_" #funcName, & className :: SIGNAL_##funcName , std::move(funcName(std::move(param1Name), std::move(param2Name)))); }
 
+#define SIGLOT_ADD_FROM_VOID_FUNC_2(className, funcName, param1Type, param1Name, param2Type, param2Name)\
+void SIGNAL_##funcName (){};\
+void  SLOT_##funcName ( param1Type && param1Name , param2Type && param2Name )\
+{ funcName(std::move(param1Name), std::move(param2Name)); emit( #className "::SIGNAL_" #funcName, & className :: SIGNAL_##funcName); }
+
+
 #define SIGLOT_ADD_FROM_FUNC_3(retType, className, funcName, param1Type, param1Name, param2Type, param2Name, param3Type, param3Name)\
 void SIGNAL_##funcName ( retType && ){};\
 void  SLOT_##funcName ( param1Type && param1Name , param2Type && param2Name , param3Type && param3Name)\
 { emit( #className "::SIGNAL_" #funcName, & className :: SIGNAL_##funcName , std::move(funcName(std::move(param1Name), std::move(param2Name), std::move(param3Name)))); }
-
 
 #include <vector>
 #include <map>
