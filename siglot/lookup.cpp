@@ -54,6 +54,7 @@ void siglot::Lookup::unprotectedRemoveObjectConnection(Object *object)
 
 void siglot::Lookup::dumpConnectionGraph(const std::string& fileFormat, const std::string &fileName, bool showHiddenConnections)
 {
+#ifdef SIGLOT_WITH_GRAPHVIZ
     // create gvc context and graph
     GVC_t *gvc = gvContext();
     Agraph_t *g = agopen("Connection Graph", Agdirected, 0);
@@ -142,4 +143,5 @@ void siglot::Lookup::dumpConnectionGraph(const std::string& fileFormat, const st
     gvFreeLayout(gvc, g);
 
     agclose(g);
+#endif
 }

@@ -3,6 +3,16 @@ project(siglot)
 
 set(CMAKE_CXX_STANDARD 17)
 
+option(SIGLOT_WITH_GRAPHVIZ "Use Graphviz" ON)
+
+MESSAGE("GraphViz?:")
+message(${SIGLOT_WITH_GRAPHVIZ})
+
+if(${SIGLOT_WITH_GRAPHVIZ})
+    message("ADDING GVIZ DEFINE")
+    add_compile_definitions(SIGLOT_WITH_GRAPHVIZ)
+endif ()
+
 add_library(siglot SHARED
         siglot/object.cpp
         siglot/thread.cpp

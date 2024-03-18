@@ -9,8 +9,11 @@
 #include <algorithm>
 #include <optional>
 #include <typeindex>
-#include <graphviz/gvc.h>
 #include "connection.h"
+#ifdef SIGLOT_WITH_GRAPHVIZ
+#include <graphviz/gvc.h>
+#endif
+
 
 namespace siglot
 {
