@@ -3,6 +3,9 @@
 
 #include <iostream>
 #include <memory>
+#include <atomic>
+#include <functional>
+#include <chrono>
 
 namespace siglot
 {
