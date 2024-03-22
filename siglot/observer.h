@@ -13,6 +13,7 @@ public:
     Observer()
     {
         mIsActive = false;
+        mSequenceNumber = 0;
         setName("observer");
         // queued connection is used even though the signal and the slot are in the same thread
         // direct connection would result in infinite selfCallSlot() recursion and stack overflow
@@ -23,9 +24,10 @@ public:
     {
         if (mIsActive)
             return;
+
         mIsActive = true;
         onStart();
-        emit(SIGLOT(Observer::selfCallSignal));
+        emit(SIGLOT(Observer::selfCallSignal), ++mSequenceNumber);
     }
 
     void stop()
@@ -34,6 +36,7 @@ public:
             return;
         mIsActive = false;
         onStop();
+        mSequenceNumber++; // avoid self callback requested before stop
     }
 
     SIGNAL SIGNAL_observed(){}
@@ -48,18 +51,21 @@ protected:
     {}
 
 private:
-    SIGNAL selfCallSignal()
+    SIGNAL selfCallSignal(unsigned int&& seqNum)
     {}
 
-    SLOT selfCallSlot()
+    SLOT selfCallSlot(unsigned int&& seqNum)
     {
+        if(seqNum != mSequenceNumber)
+            return;
         observerCallback();
         emit(SIGLOT(Observer::SIGNAL_observed));
         if (mIsActive)
-            emit(SIGLOT(Observer::selfCallSignal));
+            emit(SIGLOT(Observer::selfCallSignal), ++mSequenceNumber);
     }
 
     bool mIsActive;
+    unsigned int mSequenceNumber;
 };
 }
 #endif

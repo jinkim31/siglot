@@ -16,7 +16,7 @@ public:
         mTimeToLive = TTL_INFINITE;
     }
 
-    SIGNAL timeout(){};
+    SIGNAL SIGNAL_timeout(){};
 
     SLOT setTimeToLive(int ttl)
     {
@@ -32,11 +32,18 @@ private:
     void observerCallback() override
     {
         auto timeNow = std::chrono::high_resolution_clock::now();
-        if ((mTimeToLive < 0 || 0 < mTimeToLive) &&(timeNow - mLastTimeoutTime) >= mPeriod)
+
+        //std::cout<<"timer cound: "<<std::chrono::duration_cast<std::chrono::milliseconds>((timeNow - mLastTimeoutTime)).count()
+        //<<"/"
+        //<<std::chrono::duration_cast<std::chrono::milliseconds>(mPeriod).count()<<std::endl;
+
+        if ((mTimeToLive < 0 || 0 < mTimeToLive) && (timeNow - mLastTimeoutTime) >= mPeriod)
         {
-            emit(SIGLOT(Timer::timeout));
             mLastTimeoutTime = timeNow;
-            mTimeToLive--;
+            if(0 < mTimeToLive)
+                mTimeToLive--;
+
+            emit(SIGLOT(Timer::SIGNAL_timeout));
         }
     }
 
@@ -47,6 +54,7 @@ protected:
     void onStart() override
     {
         mLastTimeoutTime = std::chrono::high_resolution_clock::now();
+        std::cout<<"timer on start "<<std::endl;
     }
 };
 }

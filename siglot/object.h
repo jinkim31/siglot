@@ -290,9 +290,9 @@ public:
         }
     }
 
+/*
     template<typename SlotObjectType, typename SlotObjectBaseType, typename... ArgTypes>
-    static void callSlot(SlotObjectType& slotObject,
-                  const std::string &slotName, void (SlotObjectBaseType::*slot)(ArgTypes...), ArgTypes... args)
+    static void callSlot(SlotObjectType& slotObject, const std::string &slotName, void (SlotObjectBaseType::*slot)(ArgTypes&&...), ArgTypes&&... args)
     {
         // slot object and slot type check
         static_assert(std::is_convertible<SlotObjectType*, SlotObjectBaseType*>::value, "Derived must inherit Base as public");
@@ -308,13 +308,53 @@ public:
         // connect with given connection type
         if (sameThread)
         {
-            (slotObject.*slot)(args...);
+            (slotObject.*slot)(std::move(args...));
         }
         else
         {
-            slotObject.mThreadInAffinity->pushEvent(&slotObject, std::move(std::bind(slot, &slotObject, args...)));
+
+            std::function<void()> event;
+            if constexpr (sizeof...(ArgTypes) == 0U)
+                event = [=]{(slotObject.*slot)();};
+            else
+                event = [=, ... args = std::move(args)]()mutable{(slotObject.*slot)(std::move(args)...);};
+
+            slotObject.mThreadInAffinity->pushEvent(&slotObject, std::move(event));
         }
     }
+
+    */
+
+    //move. second parameter signalName is non-const to resolve overload ambiguity when ArgType is void
+    template<typename SlotObjectType, typename... ArgTypes>
+    void callSlot(SlotObjectType& slotObject, std::string slotName, void (SlotObjectType::*slot)(ArgTypes&&...), ArgTypes&&... args)
+    {
+        // shared-lock lookup
+        std::shared_lock<std::shared_mutex> lock(Lookup::instance().getGlobalMutex());
+
+
+        // check if signal and slot objects are in the same thread
+        bool sameThread = std::this_thread::get_id() == slotObject.mThreadInAffinity->mThread.get_id();
+
+        // make event
+        std::function<void()> event;
+        if constexpr (sizeof...(ArgTypes) == 0U)
+            event = [=, slotObjectPtr=&slotObject]()mutable{
+                (slotObjectPtr->*slot)();
+            };
+        else
+            event = [=, ... args = std::move(args), slotObjectPtr=&slotObject]()mutable{
+                (slotObjectPtr->*slot)(std::move(args)...);
+            };
+
+        // push event
+        if (sameThread)
+            event();
+        else
+            slotObject.mThreadInAffinity->pushEvent(&slotObject,std::move(event));
+    }
+
+    void handleNextEventsFirst();
 
     void setName(const std::string &name);
     std::string name();

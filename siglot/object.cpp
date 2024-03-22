@@ -35,3 +35,8 @@ std::string siglot::Object::name()
     std::shared_lock<std::shared_mutex> lock(Lookup::instance().getGlobalMutex());
     return mName;
 }
+
+void siglot::Object::handleNextEventsFirst()
+{
+    mThreadInAffinity->handleEvents();
+}

@@ -5,6 +5,7 @@
 siglot::Thread::Thread()
 {
     mEventLoopBreakFlag = false;
+    mIsStepping = false;
     mName = "thread";
 }
 
@@ -51,20 +52,28 @@ void siglot::Thread::runEventLoop()
     }
 }
 
-void siglot::Thread::step()
+void siglot::Thread::handleEvents()
 {
-    std::shared_lock<std::shared_mutex> lookupLock(Lookup::instance().getGlobalMutex());
+    if(!mIsStepping)
+        throw std::runtime_error("Thread::handleEvents() should not be called outside of slots (thread: " + mName + ").");
+
     std::unique_lock<std::shared_mutex> lock(mMutex);
     size_t nQueued = mEventQueue.size();
     lock.unlock();
 
     for(int i=0; i<nQueued; i++)
     {
+        // extract front event
         lock.lock();
-        // TODO: check if the slot object exists in this thread to this point(it might have been moved to another thread).
+        if(mEventQueue.empty())
+            return;
         auto front = std::move(mEventQueue.front());
         mEventQueue.pop();
         lock.unlock();
+
+        // check if the slot object is still in this thread
+        if(front.first->mThreadInAffinity != this)
+            continue;
 
         if(!front.first->mThreadInAffinity)
         {
@@ -80,8 +89,17 @@ void siglot::Thread::step()
     }
 }
 
+void siglot::Thread::step()
+{
+    std::shared_lock<std::shared_mutex> lookupLock(Lookup::instance().getGlobalMutex());
+    mIsStepping = true;
+    handleEvents();
+    mIsStepping = false;
+}
+
 void siglot::Thread::pushEvent(Object *slotObject, std::function<void(void)> &&event)
 {
     std::unique_lock<std::shared_mutex> lock(mMutex);
     mEventQueue.emplace(slotObject, std::move(event));
 }
+
