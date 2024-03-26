@@ -54,7 +54,6 @@ protected:
     void onStart() override
     {
         mLastTimeoutTime = std::chrono::high_resolution_clock::now();
-        std::cout<<"timer on start "<<std::endl;
     }
 };
 }
