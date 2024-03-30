@@ -22,13 +22,14 @@ public:
     void step();
     void handleEvents();
     void setName(const std::string &name);
-
+    void setEventLoopDelay(const std::chrono::high_resolution_clock::duration& delay);
 private:
     std::thread mThread;
     std::string mName;
     std::shared_mutex mMutex;
     std::atomic<bool> mEventLoopBreakFlag;
     std::queue<std::pair<Object *, std::function<void(void)>>> mEventQueue;
+    std::chrono::high_resolution_clock::duration mEventLoopDelay;
     bool mIsStepping;
     static void *entryPoint(void *param);
     void pushEvent(Object *slotObject, std::function<void(void)> &&event);

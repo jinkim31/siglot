@@ -7,6 +7,7 @@ siglot::Thread::Thread()
     mEventLoopBreakFlag = false;
     mIsStepping = false;
     mName = "thread";
+    mEventLoopDelay = std::chrono::milliseconds(1);
 }
 
 siglot::Thread::~Thread()
@@ -48,7 +49,7 @@ void siglot::Thread::runEventLoop()
             return;
 
         step();
-        //std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        std::this_thread::sleep_for(mEventLoopDelay);
     }
 }
 
@@ -103,3 +104,8 @@ void siglot::Thread::pushEvent(Object *slotObject, std::function<void(void)> &&e
     mEventQueue.emplace(slotObject, std::move(event));
 }
 
+void siglot::Thread::setEventLoopDelay(const std::chrono::high_resolution_clock::duration &delay)
+{
+    std::unique_lock<std::shared_mutex> lock(mMutex);
+    mEventLoopDelay = delay;
+}
