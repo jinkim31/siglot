@@ -30,10 +30,10 @@ private:
     std::atomic<bool> mEventLoopBreakFlag;
     std::queue<std::pair<Object *, std::function<void(void)>>> mEventQueue;
     std::chrono::high_resolution_clock::duration mEventLoopDelay;
-    bool mIsStepping;
     static void *entryPoint(void *param);
     void pushEvent(Object *slotObject, std::function<void(void)> &&event);
     void runEventLoop();
+    bool mHasGlobalLock;
 
     friend class Object;
 

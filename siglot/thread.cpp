@@ -5,9 +5,9 @@
 siglot::Thread::Thread()
 {
     mEventLoopBreakFlag = false;
-    mIsStepping = false;
     mName = "thread";
     mEventLoopDelay = std::chrono::milliseconds(1);
+    mHasGlobalLock = false;
 }
 
 siglot::Thread::~Thread()
@@ -49,15 +49,12 @@ void siglot::Thread::runEventLoop()
             return;
 
         step();
-        std::this_thread::sleep_for(mEventLoopDelay);
+        //std::this_thread::sleep_for(mEventLoopDelay);
     }
 }
 
 void siglot::Thread::handleEvents()
 {
-    if(!mIsStepping)
-        throw std::runtime_error("Thread::handleEvents() should not be called outside of slots (thread: " + mName + ").");
-
     std::unique_lock<std::shared_mutex> lock(mMutex);
     size_t nQueued = mEventQueue.size();
     lock.unlock();
@@ -93,9 +90,9 @@ void siglot::Thread::handleEvents()
 void siglot::Thread::step()
 {
     std::shared_lock<std::shared_mutex> lookupLock(Lookup::instance().getGlobalMutex());
-    mIsStepping = true;
+    mHasGlobalLock = true;
     handleEvents();
-    mIsStepping = false;
+    mHasGlobalLock = false;
 }
 
 void siglot::Thread::pushEvent(Object *slotObject, std::function<void(void)> &&event)

@@ -193,8 +193,11 @@ public:
     template<typename SignalObjectType, typename... ArgTypes>
     void emit(const std::string &signalName, void (SignalObjectType::*signal)(ArgTypes&&...), ArgTypes... args)
     {
-        // shared-lock lookup
-        std::shared_lock<std::shared_mutex> lock(Lookup::instance().getGlobalMutex());
+        auto& m = Lookup::instance().getGlobalMutex();
+
+        // shared-lock lookup if it's not locked already. could be locked if the emission is called in a slot
+        if(!mThreadInAffinity->mHasGlobalLock)
+            std::shared_lock<std::shared_mutex> lock(Lookup::instance().getGlobalMutex());
 
         // find connection
         // TODO: optimize search
