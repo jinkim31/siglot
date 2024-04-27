@@ -43,10 +43,10 @@ public:
     void
     dumpConnectionGraph(const std::string &fileFormat, const std::string &fileName, bool showHiddenConnections = false);
 private:
-    std::vector<Object *> mObjectList; // map of active objects and their threads in affinity
+    std::unordered_map<size_t, Object*> mObjectList; // map of object id and object pointer
     std::vector<std::unique_ptr<Connection::GeneralizedConnection>> mConnectionGraph; // edge list of active connection graph
     void unprotectedAddObjectList(Object *object);
-    void unprotectedRemoveObjectThreadMap(Object *object);
+    void unprotectedRemoveObjectList(Object *object);
     void unprotectedAddConnection(std::unique_ptr<Connection::GeneralizedConnection> &&connection);
     void unprotectedRemoveObjectConnection(Object *object);
     std::shared_mutex &getGlobalMutex();

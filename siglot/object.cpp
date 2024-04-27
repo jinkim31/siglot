@@ -1,6 +1,6 @@
 #include "object.h"
 
-siglot::Object::Object()
+siglot::Object::Object() : mID(generateID())
 {
     mName = "Object";
     mThreadInAffinity = nullptr;
@@ -18,9 +18,10 @@ void siglot::Object::move(Thread& ethread)
 void siglot::Object::remove()
 {
     std::unique_lock<std::shared_mutex> lock(Lookup::instance().getGlobalMutex());
-    Lookup::instance().unprotectedRemoveObjectThreadMap(this);
+    Lookup::instance().unprotectedRemoveObjectList(this);
     Lookup::instance().unprotectedRemoveObjectConnection(this);
     lock.unlock();
+
     onRemove();
 }
 

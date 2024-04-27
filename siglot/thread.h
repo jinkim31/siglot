@@ -28,10 +28,10 @@ private:
     std::string mName;
     std::shared_mutex mMutex;
     std::atomic<bool> mEventLoopBreakFlag;
-    std::queue<std::pair<Object *, std::function<void(void)>>> mEventQueue;
-    std::chrono::high_resolution_clock::duration mEventLoopDelay;
+    std::queue<std::pair<size_t, std::function<void(void)>>> mEventQueue;
+    std::chrono::high_resolution_clock::duration mEventLoopDelay{};
     static void *entryPoint(void *param);
-    void pushEvent(Object *slotObject, std::function<void(void)> &&event);
+    void pushEvent(size_t objectID, std::function<void(void)> &&event);
     void runEventLoop();
     bool mHasGlobalLock;
 

@@ -27,16 +27,13 @@ std::shared_mutex &siglot::Lookup::getGlobalMutex()
 
 void siglot::Lookup::unprotectedAddObjectList(Object *object)
 {
-    if(std::find(mObjectList.begin(), mObjectList.end(),object) == mObjectList.end())
-        mObjectList.push_back(object);
+    if(mObjectList.find(object->mID) == mObjectList.end())
+        mObjectList.insert({object->mID, object});
 }
 
-void siglot::Lookup::unprotectedRemoveObjectThreadMap(Object *object)
+void siglot::Lookup::unprotectedRemoveObjectList(Object *object)
 {
-    mObjectList.erase(
-            std::remove_if(mObjectList.begin(), mObjectList.end(),
-                           [&](auto& iter) {return iter==object;}),
-            mObjectList.end());
+    std::erase_if(mObjectList, [&](auto& iter) {return iter.first==object->mID;});
 }
 
 void siglot::Lookup::unprotectedAddConnection(std::unique_ptr<Connection::GeneralizedConnection> &&connection)
@@ -67,8 +64,9 @@ void siglot::Lookup::dumpConnectionGraph(const std::string& fileFormat, const st
     std::stringstream ss;
 
     // make object, thread names
-    for(const auto& object : mObjectList)
+    for(const auto& idObjectPair : mObjectList)
     {
+        auto& object = idObjectPair.second;
         // make object node names
         objectNameMap[object] = object->name();
 

@@ -63,6 +63,8 @@ class Object
 public:
     Object();
 
+    const size_t mID;
+
     template<typename SignalObjectType, typename SignalObjectBaseType, typename SlotObjectType, typename SlotObjectBaseType, typename... ArgTypes>
     static void connect(
             SignalObjectType &signalObject, const std::string &signalId, void (SignalObjectBaseType::*signal)(ArgTypes&&...),
@@ -92,7 +94,8 @@ public:
     void emit(std::string &signalName, void (SignalObjectType::*signal)(ArgTypes&&...), ArgTypes&&... args)
     {
         // shared-lock lookup
-        std::shared_lock<std::shared_mutex> lock(Lookup::instance().getGlobalMutex());
+        if(!mThreadInAffinity->mHasGlobalLock)
+            std::shared_lock<std::shared_mutex> lock(Lookup::instance().getGlobalMutex());
 
         // find connection
         // TODO: optimize search
@@ -169,7 +172,7 @@ public:
                     if (sameThread)
                         event();
                     else
-                        slotThread->pushEvent(argTypeConnection->mSlotObject,std::move(event));
+                        slotThread->pushEvent(argTypeConnection->mSlotObject.mID,std::move(event));
                     break;
                 }
                 case Connection::DIRECT:
@@ -181,7 +184,7 @@ public:
                 }
                 case Connection::QUEUED:
                 {
-                    slotThread->pushEvent(argTypeConnection->mSlotObject, std::move(event));
+                    slotThread->pushEvent(argTypeConnection->mSlotObject.mID, std::move(event));
                     break;
                 }
             }
@@ -274,7 +277,7 @@ public:
                     if (sameThread)
                         event();
                     else
-                        slotThread->pushEvent(argTypeConnection->mSlotObject,std::move(event));
+                        slotThread->pushEvent(argTypeConnection->mSlotObject->mID,std::move(event));
                     break;
                 }
                 case Connection::DIRECT:
@@ -286,7 +289,7 @@ public:
                 }
                 case Connection::QUEUED:
                 {
-                    slotThread->pushEvent(argTypeConnection->mSlotObject, std::move(event));
+                    slotThread->pushEvent(argTypeConnection->mSlotObject->mID, std::move(event));
                     break;
                 }
             }
@@ -336,7 +339,8 @@ public:
         static_assert(std::is_convertible<SlotObjectType*, SlotObjectBaseType*>::value, "Derived must inherit Base as public");
 
         // shared-lock lookup
-        std::shared_lock<std::shared_mutex> lock(Lookup::instance().getGlobalMutex());
+        if(!mThreadInAffinity->mHasGlobalLock)
+            std::shared_lock<std::shared_mutex> lock(Lookup::instance().getGlobalMutex());
 
 
         // check if signal and slot objects are in the same thread
@@ -357,13 +361,18 @@ public:
         if (sameThread)
             event();
         else
-            slotObject.mThreadInAffinity->pushEvent(&slotObject,std::move(event));
+            slotObject.mThreadInAffinity->pushEvent(slotObject.mID,std::move(event));
     }
 
     void handleNextEventsFirst();
 
     void setName(const std::string &name);
     std::string name();
+    Thread& threadInAffinity(){
+        if(!mThreadInAffinity->mHasGlobalLock)
+            std::shared_lock<std::shared_mutex> lock(Lookup::instance().getGlobalMutex());
+        return *mThreadInAffinity;
+    }
 protected:
     virtual void onMove(Thread &thread)
     {}
@@ -372,6 +381,15 @@ protected:
     {}
 
 private:
+    static size_t generateID()
+    {
+        static std::mutex mutex;
+        std::unique_lock<std::mutex> lock(mutex);
+        static size_t nextIDAvailable = 0;
+        std::cout<<"allocating id: "<<nextIDAvailable<<std::endl;
+        return nextIDAvailable++;
+    }
+
     Thread *mThreadInAffinity;
     std::string mName;
     friend Thread;

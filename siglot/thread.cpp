@@ -69,18 +69,15 @@ void siglot::Thread::handleEvents()
         mEventQueue.pop();
         lock.unlock();
 
-        // check if the slot object is still in this thread
-        if(front.first->mThreadInAffinity != this)
+        // check if the object with the id is still around
+        const auto& idObjectPair = Lookup::instance().mObjectList.find(front.first);
+        if(idObjectPair == Lookup::instance().mObjectList.end())
             continue;
 
-        if(!front.first->mThreadInAffinity)
+        // check thread affinity
+        if(idObjectPair->second->mThreadInAffinity!=this)
         {
-            std::cerr<<"EXPECTED! Slot object not assigned to thread."<<std::endl;
-            continue;
-        }
-        if(front.first->mThreadInAffinity!=this)
-        {
-            std::cout<<"EXPECTED! Queued event's thread mismatch. This could happen on object move or remove(slot object: "<<front.first<<", this thread: "<<this<<", slot thread: "<<front.first->mThreadInAffinity<<")."<<std::endl;
+            std::cout<<"EXPECTED!"<<std::endl;
             continue;
         }
         front.second();
@@ -95,10 +92,10 @@ void siglot::Thread::step()
     mHasGlobalLock = false;
 }
 
-void siglot::Thread::pushEvent(Object *slotObject, std::function<void(void)> &&event)
+void siglot::Thread::pushEvent(size_t objectID, std::function<void(void)> &&event)
 {
     std::unique_lock<std::shared_mutex> lock(mMutex);
-    mEventQueue.emplace(slotObject, std::move(event));
+    mEventQueue.emplace(objectID, std::move(event));
 }
 
 void siglot::Thread::setEventLoopDelay(const std::chrono::high_resolution_clock::duration &delay)

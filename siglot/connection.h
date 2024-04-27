@@ -25,12 +25,13 @@ enum ConnectionType
 struct GeneralizedConnection
 {
     GeneralizedConnection(
-            Object *signalObject, const std::string &signalName,
-            Object *slotObject, const std::string &slotName,
+            size_t signalObjectID, Object *signalObject, const std::string &signalName,
+            size_t slotObjectID, Object *slotObject, const std::string &slotName,
             ConnectionType connectionType,
             bool isHiddenInGraphViz);
     virtual ~GeneralizedConnection() = default;
     Object *mSignalObject, *mSlotObject;
+    size_t mSignalObjectID, mSlotObjectID;
     const std::string mSignalName, mSlotName, mSignalId, mSlotId;
     const ConnectionType mConnectionType;
     const bool mIsHiddenInGraphViz;
@@ -54,7 +55,9 @@ struct Connection : public GeneralizedConnection
             const std::string &slotName,
             void (SlotObjectBaseType::*slot)(ArgTypes &&...),
             ConnectionType connectionType, bool isHiddenInGraphViz)
-            : GeneralizedConnection(signalObject, signalName, slotObject, slotName, connectionType, isHiddenInGraphViz)
+            : GeneralizedConnection(signalObject->mID, signalObject, signalName,
+                                    slotObject->mID, slotObject, slotName,
+                                    connectionType, isHiddenInGraphViz)
     {
         static_assert(std::is_convertible<SignalObjectType *, SignalObjectBaseType *>::value,
                       "Derived must inherit Base as public");
