@@ -328,10 +328,13 @@ public:
 
     */
 
-    //move. second parameter signalName is non-const to resolve overload ambiguity when ArgType is void
-    template<typename SlotObjectType, typename... ArgTypes>
-    void callSlot(SlotObjectType& slotObject, std::string slotName, void (SlotObjectType::*slot)(ArgTypes&&...), ArgTypes&&... args)
+
+    template<typename SlotObjectType, typename SlotObjectBaseType, typename... ArgTypes>
+    void callSlot(SlotObjectType& slotObject, std::string slotName, void (SlotObjectBaseType::*slot)(ArgTypes&&...), ArgTypes&&... args)
     {
+        // check signal slot inheritance
+        static_assert(std::is_convertible<SlotObjectType*, SlotObjectBaseType*>::value, "Derived must inherit Base as public");
+
         // shared-lock lookup
         std::shared_lock<std::shared_mutex> lock(Lookup::instance().getGlobalMutex());
 

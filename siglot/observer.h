@@ -29,6 +29,7 @@ public:
         onStart();
         emit(SIGLOT(Observer::selfCallSignal), ++mSequenceNumber);
     }
+    SIGLOT_ADD_FROM_VOID_FUNC(Observer, start);
 
     void stop()
     {
@@ -38,6 +39,7 @@ public:
         onStop();
         mSequenceNumber++; // avoid self callback requested before stop
     }
+    SIGLOT_ADD_FROM_VOID_FUNC(Observer, stop);
 
     SIGNAL SIGNAL_observed(){}
 
