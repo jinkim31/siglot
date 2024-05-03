@@ -10,7 +10,21 @@ siglot::Lookup::~Lookup()
     if(!mConnectionGraph.empty())
     {
         std::cerr<<"Connection graph is not empty on lookup destruction. "
-                   "Make sure to remove objects before they get destructed."<<std::endl;
+                   "Make sure to remove objects before they get destructed."
+                   "\nConnections:"<<std::endl;
+        for(const auto& connection : mConnectionGraph)
+        {
+            std::cerr
+            <<"  "
+            <<connection->mSignalObject->name()<<"("<<connection->mSignalObject->mID<<")"
+            <<" > "
+            <<connection->mSignalName
+            <<" > "
+            <<connection->mSlotName
+            <<" > "
+            <<connection->mSlotObject->name()<<"("<<connection->mSlotObject->mID<<")"
+            <<std::endl;
+        }
     }
     if(!mObjectList.empty())
     {

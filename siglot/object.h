@@ -73,8 +73,8 @@ public:
             bool isHiddenInGraphViz = false)
     {
         // check signal slot inheritance
-        static_assert(std::is_convertible<SignalObjectType*, SignalObjectBaseType*>::value, "Derived must inherit Base as public");
-        static_assert(std::is_convertible<SlotObjectType*, SlotObjectBaseType*>::value, "Derived must inherit Base as public");
+        static_assert(std::is_convertible<SignalObjectType*, SignalObjectBaseType*>::value, "[Signal] Derived must inherit Base as public");
+        static_assert(std::is_convertible<SlotObjectType*, SlotObjectBaseType*>::value, "[Slot] Derived must inherit Base as public");
 
         //std::cout<<"connecting "<<signalObject<<"-"<<signalId<<" to "<<slotObject<<"-"<<slotId<<std::endl;
         std::unique_lock<std::shared_mutex> lock(Lookup::instance().getGlobalMutex());
@@ -296,52 +296,16 @@ public:
         }
     }
 
-/*
-    template<typename SlotObjectType, typename SlotObjectBaseType, typename... ArgTypes>
-    static void callSlot(SlotObjectType& slotObject, const std::string &slotName, void (SlotObjectBaseType::*slot)(ArgTypes&&...), ArgTypes&&... args)
-    {
-        // slot object and slot type check
-        static_assert(std::is_convertible<SlotObjectType*, SlotObjectBaseType*>::value, "Derived must inherit Base as public");
-
-        // shared-lock lookup
-        std::shared_lock<std::shared_mutex> lock(Lookup::instance().getGlobalMutex());
-        auto signalThreadId = std::this_thread::get_id();
-        auto slotThreadId = slotObject.mThreadInAffinity->mThread.get_id();
-
-        // check if signal and slot objects are in the same thread
-        bool sameThread = signalThreadId == slotThreadId;
-
-        // connect with given connection type
-        if (sameThread)
-        {
-            (slotObject.*slot)(std::move(args...));
-        }
-        else
-        {
-
-            std::function<void()> event;
-            if constexpr (sizeof...(ArgTypes) == 0U)
-                event = [=]{(slotObject.*slot)();};
-            else
-                event = [=, ... args = std::move(args)]()mutable{(slotObject.*slot)(std::move(args)...);};
-
-            slotObject.mThreadInAffinity->pushEvent(&slotObject, std::move(event));
-        }
-    }
-
-    */
-
-
+    // move
     template<typename SlotObjectType, typename SlotObjectBaseType, typename... ArgTypes>
     void callSlot(SlotObjectType& slotObject, std::string slotName, void (SlotObjectBaseType::*slot)(ArgTypes&&...), ArgTypes&&... args)
     {
         // check signal slot inheritance
-        static_assert(std::is_convertible<SlotObjectType*, SlotObjectBaseType*>::value, "Derived must inherit Base as public");
+        static_assert(std::is_convertible<SlotObjectType*, SlotObjectBaseType*>::value, "[Slot] Derived must inherit Base as public");
 
         // shared-lock lookup
         if(!mThreadInAffinity->mHasGlobalLock)
             std::shared_lock<std::shared_mutex> lock(Lookup::instance().getGlobalMutex());
-
 
         // check if signal and slot objects are in the same thread
         bool sameThread = std::this_thread::get_id() == slotObject.mThreadInAffinity->mThread.get_id();
@@ -386,7 +350,7 @@ private:
         static std::mutex mutex;
         std::unique_lock<std::mutex> lock(mutex);
         static size_t nextIDAvailable = 0;
-        std::cout<<"allocating id: "<<nextIDAvailable<<std::endl;
+        //std::cout<<"allocating id: "<<nextIDAvailable<<std::endl;
         return nextIDAvailable++;
     }
 
