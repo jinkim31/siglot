@@ -2,7 +2,7 @@
 
 siglot::Object::Object() : mID(generateID())
 {
-    mName = "Object";
+    mSiglotObjectName = "Object";
     mThreadInAffinity = nullptr;
 }
 
@@ -25,16 +25,16 @@ void siglot::Object::remove()
     onRemove();
 }
 
-void siglot::Object::setName(const std::string &name)
+void siglot::Object::setSiglotObjectName(const std::string &name)
 {
     std::unique_lock<std::shared_mutex> lock(Lookup::instance().getGlobalMutex());
-    mName = name;
+    mSiglotObjectName = name;
 }
 
-std::string siglot::Object::name()
+std::string siglot::Object::siglotObjectName()
 {
     std::shared_lock<std::shared_mutex> lock(Lookup::instance().getGlobalMutex());
-    return mName;
+    return mSiglotObjectName;
 }
 
 void siglot::Object::handleNextEventsFirst()

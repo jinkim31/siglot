@@ -11,7 +11,7 @@ public:
 
     Timer()
     {
-        setName("timer");
+        setSiglotObjectName("timer");
         mPeriod = std::chrono::seconds(1);
         mTimeToLive = TTL_INFINITE;
     }

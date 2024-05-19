@@ -330,8 +330,8 @@ public:
 
     void handleNextEventsFirst();
 
-    void setName(const std::string &name);
-    std::string name();
+    void setSiglotObjectName(const std::string &name);
+    std::string siglotObjectName();
     Thread& threadInAffinity(){
         if(!mThreadInAffinity->mHasGlobalLock)
             std::shared_lock<std::shared_mutex> lock(Lookup::instance().getGlobalMutex());
@@ -355,7 +355,7 @@ private:
     }
 
     Thread *mThreadInAffinity;
-    std::string mName;
+    std::string mSiglotObjectName;
     friend Thread;
     friend Lookup;
 };

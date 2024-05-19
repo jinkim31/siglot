@@ -16,13 +16,13 @@ siglot::Lookup::~Lookup()
         {
             std::cerr
             <<"  "
-            <<connection->mSignalObject->name()<<"("<<connection->mSignalObject->mID<<")"
+            <<connection->mSignalObject->siglotObjectName()<<"("<<connection->mSignalObject->mID<<")"
             <<" > "
             <<connection->mSignalName
             <<" > "
             <<connection->mSlotName
             <<" > "
-            <<connection->mSlotObject->name()<<"("<<connection->mSlotObject->mID<<")"
+            <<connection->mSlotObject->siglotObjectName()<<"("<<connection->mSlotObject->mID<<")"
             <<std::endl;
         }
     }
