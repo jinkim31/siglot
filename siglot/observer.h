@@ -20,6 +20,8 @@ public:
         connect(*this, SIGLOT(Observer::selfCallSignal), *this, SIGLOT(Observer::selfCallSlot), Connection::QUEUED, true);
     }
 
+    virtual ~Observer(){};
+
     void start()
     {
         if (mIsActive)
