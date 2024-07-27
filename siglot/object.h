@@ -93,6 +93,10 @@ public:
     template<typename SignalObjectType, typename... ArgTypes>
     void emit(std::string &signalName, void (SignalObjectType::*signal)(ArgTypes&&...), ArgTypes&&... args)
     {
+        // check if object has thread in affinity
+        if(!mThreadInAffinity)
+            throw std::runtime_error("[siglot] The object has no thread in affinity. Use move().");
+
         // shared-lock lookup
         if(!mThreadInAffinity->mHasGlobalLock)
             std::shared_lock<std::shared_mutex> lock(Lookup::instance().getGlobalMutex());
@@ -196,6 +200,10 @@ public:
     template<typename SignalObjectType, typename... ArgTypes>
     void emit(const std::string &signalName, void (SignalObjectType::*signal)(ArgTypes&&...), ArgTypes... args)
     {
+        // check if object has thread in affinity
+        if(!mThreadInAffinity)
+            throw std::runtime_error("[siglot] The object has no thread in affinity. Use move().");
+
         auto& m = Lookup::instance().getGlobalMutex();
 
         // shared-lock lookup if it's not locked already. could be locked if the emission is called in a slot
@@ -303,6 +311,9 @@ public:
         // check signal slot inheritance
         static_assert(std::is_convertible<SlotObjectType*, SlotObjectBaseType*>::value, "[Slot] Derived must inherit Base as public");
 
+        // check if object has thread in affinity
+        if(!mThreadInAffinity)
+            throw std::runtime_error("[siglot] The object has no thread in affinity. Use move().");
         // shared-lock lookup
         if(!mThreadInAffinity->mHasGlobalLock)
             std::shared_lock<std::shared_mutex> lock(Lookup::instance().getGlobalMutex());
